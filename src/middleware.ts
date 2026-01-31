@@ -1,11 +1,25 @@
 import createMiddleware from "next-intl/middleware";
+import { NextResponse, type NextRequest } from "next/server";
 import { locales, defaultLocale } from "./i18n/config";
+import { updateSession } from "./lib/supabase/middleware";
 
-export default createMiddleware({
+const intlMiddleware = createMiddleware({
   locales,
   defaultLocale,
-  localePrefix: "as-needed", // Don't add locale prefix for default locale
+  localePrefix: "always",
 });
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Handle admin routes with auth
+  if (pathname.startsWith("/admin")) {
+    return updateSession(request);
+  }
+
+  // Handle i18n for other routes
+  return intlMiddleware(request);
+}
 
 export const config = {
   matcher: [

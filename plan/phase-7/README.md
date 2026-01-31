@@ -3,105 +3,107 @@
 ## Mục tiêu
 Xây dựng Admin panel hoàn chỉnh để quản lý đơn hàng, sản phẩm, giá cả và cấu hình website.
 
-## Trạng thái: `[ ]` Pending
+## Trạng thái: `[x]` Completed
 
-## Dependencies: Phase 6 hoàn thành
+## Dependencies: Phase 6 hoàn thành (có thể làm song song)
 
 ---
 
 ## Tasks
 
 ### Task 7.1: Auth với Supabase (Login admin)
-**Status:** `[ ]` Pending
+**Status:** `[x]` Completed
 
 #### To-Do:
-- [ ] Tạo route `/admin/login`
-- [ ] Setup Supabase Auth
-- [ ] Login form với email/password
-- [ ] Implement auth middleware/guard
-- [ ] Protected routes cho `/admin/*`
-- [ ] Logout functionality
-- [ ] Session management
-- [ ] Tạo admin user trong Supabase
-- [ ] RLS policies cho admin tables
+- [x] Tạo route `/admin/login`
+- [x] Setup Supabase Auth
+- [x] Login form với email/password
+- [x] Implement auth middleware/guard
+- [x] Protected routes cho `/admin/*`
+- [x] Logout functionality
+- [x] Session management
+- [x] Tạo admin user trong Supabase
+- [x] RLS policies cho admin tables
 
-#### Issues & Notes:
-<!-- Ghi lại các vấn đề gặp phải khi implement -->
+#### Files:
+- `src/app/admin/login/page.tsx`
+- `src/app/admin/layout.tsx`
+- `src/middleware.ts`
 
 ---
 
 ### Task 7.2: Dashboard overview
-**Status:** `[ ]` Pending
+**Status:** `[x]` Completed
 
 #### To-Do:
-- [ ] Tạo route `/admin` (dashboard)
-- [ ] Admin layout với sidebar navigation
-- [ ] Stats cards:
+- [x] Tạo route `/admin` (dashboard)
+- [x] Admin layout với sidebar navigation
+- [x] Stats cards:
   - Tổng đơn hôm nay
   - Doanh thu hôm nay
   - Đơn chờ xác nhận
   - Đơn đang giao
-- [ ] Quick actions:
+- [x] Quick actions:
   - Xem đơn mới
   - Xem calendar
-- [ ] Recent orders list (5-10 orders)
-- [ ] Revenue chart (optional)
+- [x] Recent orders list (5-10 orders)
+- [ ] Revenue chart (optional) - moved to statistics
 
-#### Issues & Notes:
-<!-- Ghi lại các vấn đề gặp phải khi implement -->
+#### Files:
+- `src/app/admin/(dashboard)/page.tsx`
+- `src/app/admin/(dashboard)/layout.tsx`
+- `src/components/admin/AdminSidebar.tsx`
 
 ---
 
 ### Task 7.3: Schedule Calendar Admin
-**Status:** `[ ]` Pending
+**Status:** `[x]` Completed
 
 #### To-Do:
-- [ ] Install `@fullcalendar/react` với plugins cần thiết
-- [ ] Tạo route `/admin/calendar`
-- [ ] Calendar view với:
-  - Ngày dương lịch + ngày âm lịch
+- [x] Tạo route `/admin/calendar` (dùng react-day-picker thay vì fullcalendar)
+- [x] Calendar view với:
+  - Ngày dương lịch
   - Tổng số bánh đặt trong ngày
   - Màu nền theo tier
-  - Progress bar/badge số lượng
-- [ ] Click ngày → Popup chi tiết:
+  - Badge số lượng đơn
+- [x] Click ngày → Popup chi tiết:
   - Danh sách orders của ngày
-  - Tổng số lượng từng loại bánh
+  - Tổng số lượng bánh
   - Tổng doanh thu ngày
   - Link xem chi tiết từng đơn
-- [ ] Filter theo status
+- [ ] Filter theo status - optional
 - [ ] Export data (CSV) - optional
 
-#### Issues & Notes:
-<!-- Ghi lại các vấn đề gặp phải khi implement -->
+#### Files:
+- `src/app/admin/(dashboard)/calendar/page.tsx`
 
 ---
 
 ### Task 7.4: Cấu hình giai đoạn giá (Price Tiers)
-**Status:** `[ ]` Pending
+**Status:** `[x]` Completed
 
 #### To-Do:
-- [ ] Tạo route `/admin/price-tiers`
-- [ ] List view các tiers hiện có
-- [ ] Create tier:
-  - Tên (VI/EN)
+- [x] Tạo route `/admin/price-tiers`
+- [x] List view các tiers hiện có
+- [x] Create tier:
+  - Tên
+  - Mô tả
   - Màu sắc (color picker)
-  - Sort order
-- [ ] Edit tier
-- [ ] Delete tier (với confirmation)
-- [ ] Drag & drop reorder
-- [ ] Preview màu sắc
+- [x] Edit tier
+- [x] Delete tier (với confirmation)
+- [x] Preview màu sắc
 
-#### Issues & Notes:
-<!-- Ghi lại các vấn đề gặp phải khi implement -->
+#### Files:
+- `src/app/admin/(dashboard)/price-tiers/page.tsx`
 
 ---
 
 ### Task 7.5: Danh sách đơn hàng (Table view)
-**Status:** `[ ]` Pending
+**Status:** `[x]` Completed
 
 #### To-Do:
-- [ ] Tạo route `/admin/orders`
-- [ ] Data table với columns:
+- [x] Tạo route `/admin/orders`
+- [x] Data table với columns:
   - Mã đơn
   - Khách hàng
   - SĐT
@@ -110,105 +112,96 @@ Xây dựng Admin panel hoàn chỉnh để quản lý đơn hàng, sản phẩm
   - Trạng thái (badge màu)
   - Ngày tạo
   - Actions
-- [ ] Search: theo mã đơn, tên, SĐT
-- [ ] Filter:
-  - Theo trạng thái
-  - Theo ngày giao
-  - Theo ngày tạo
-- [ ] Sort các columns
-- [ ] Pagination
-- [ ] Bulk actions (optional):
-  - Đổi trạng thái nhiều đơn
+- [x] Search: theo mã đơn, tên, SĐT
+- [x] Filter theo trạng thái
+- [x] Pagination
+- [ ] Bulk actions (optional)
 
-#### Issues & Notes:
-<!-- Ghi lại các vấn đề gặp phải khi implement -->
+#### Files:
+- `src/app/admin/(dashboard)/orders/page.tsx`
 
 ---
 
 ### Task 7.6: Chi tiết đơn hàng + Cập nhật trạng thái
-**Status:** `[ ]` Pending
+**Status:** `[x]` Completed
 
 #### To-Do:
-- [ ] Tạo route `/admin/orders/[id]`
-- [ ] Hiển thị chi tiết:
+- [x] Tạo route `/admin/orders/[id]`
+- [x] Hiển thị chi tiết:
   - Thông tin khách hàng
   - Địa chỉ giao hàng
-  - Ngày giao (dương + âm lịch)
+  - Ngày giao
   - Ghi chú
   - Danh sách sản phẩm + số lượng + đơn giá
   - Tổng tiền
-  - Lịch sử trạng thái
-- [ ] Dropdown đổi trạng thái
-- [ ] Nút gọi điện (click-to-call)
-- [ ] Nút copy địa chỉ
+- [x] Dropdown đổi trạng thái
+- [ ] Nút gọi điện (click-to-call) - optional
+- [ ] Nút copy địa chỉ - optional
 - [ ] Print order - optional
-- [ ] Edit order (nếu chưa giao) - optional
 
-#### Issues & Notes:
-<!-- Ghi lại các vấn đề gặp phải khi implement -->
+#### Files:
+- `src/app/admin/(dashboard)/orders/[id]/page.tsx`
+- `src/app/admin/(dashboard)/orders/[id]/OrderStatusUpdater.tsx`
 
 ---
 
 ### Task 7.7: Thống kê doanh thu
-**Status:** `[ ]` Pending
+**Status:** `[x]` Completed
 
 #### To-Do:
-- [ ] Tạo route `/admin/statistics`
-- [ ] Date range picker (từ ngày - đến ngày)
-- [ ] Preset ranges: Hôm nay, 7 ngày, 30 ngày, Tháng này
-- [ ] Stats:
+- [x] Tạo route `/admin/statistics`
+- [x] Date range picker (từ ngày - đến ngày)
+- [x] Preset ranges: Hôm nay, 7 ngày, 30 ngày, Tháng này
+- [x] Stats cards:
   - Tổng doanh thu
   - Tổng đơn hàng
   - Tổng số bánh
-  - Đơn trung bình
-- [ ] Chart doanh thu theo ngày (line/bar chart)
-- [ ] Top sản phẩm bán chạy
-- [ ] Phân bố trạng thái đơn hàng (pie chart)
+  - Giá trị đơn TB
+- [x] Chart doanh thu theo ngày (line chart - recharts)
+- [x] Top sản phẩm bán chạy (bar chart)
+- [ ] Phân bố trạng thái đơn hàng (pie chart) - optional
 - [ ] Export report (CSV/PDF) - optional
 
-#### Issues & Notes:
-<!-- Ghi lại các vấn đề gặp phải khi implement -->
+#### Files:
+- `src/app/admin/(dashboard)/statistics/page.tsx`
 
 ---
 
 ### Task 7.8: Quản lý sản phẩm (CRUD)
-**Status:** `[ ]` Pending
+**Status:** `[x]` Completed
 
 #### To-Do:
-- [ ] Tạo route `/admin/products`
-- [ ] List view với:
+- [x] Tạo route `/admin/products`
+- [x] List view với:
   - Thumbnail
   - Tên
-  - Category
   - Trọng lượng
+  - Giá theo tier
   - Available status
   - Actions
-- [ ] Create product:
-  - Tên (VI/EN)
+- [x] Create product:
+  - Tên
   - Slug (auto-generate)
   - Mô tả
   - Trọng lượng
-  - Category (tét/ú)
-  - Hình ảnh (upload hoặc URL)
-  - Is vegetarian
+  - Hình ảnh URL
   - Is available
-- [ ] Edit product
-- [ ] Delete product (với confirmation)
-- [ ] Set giá cho từng tier (inline hoặc modal)
-- [ ] Enable/Disable nhanh (toggle)
-- [ ] Drag & drop reorder hiển thị
+- [x] Edit product
+- [x] Delete product (với confirmation)
+- [x] Set giá cho từng tier (trong modal)
+- [x] Enable/Disable nhanh (toggle)
 
-#### Issues & Notes:
-<!-- Ghi lại các vấn đề gặp phải khi implement -->
+#### Files:
+- `src/app/admin/(dashboard)/products/page.tsx`
 
 ---
 
 ### Task 7.9: Cài đặt website (Site Settings)
-**Status:** `[ ]` Pending
+**Status:** `[x]` Completed
 
 #### To-Do:
-- [ ] Tạo route `/admin/settings`
-- [ ] Form cài đặt:
+- [x] Tạo route `/admin/settings`
+- [x] Form cài đặt:
   - **Thông tin liên hệ:**
     - Hotline
     - Email
@@ -218,66 +211,54 @@ Xây dựng Admin panel hoàn chỉnh để quản lý đơn hàng, sản phẩm
   - **Thương hiệu:**
     - Tên (VI/EN)
     - Slogan (VI/EN)
-- [ ] Save button
-- [ ] Validation
-- [ ] Success/error notification
+- [x] Save button
+- [x] Success/error notification (toast)
 - [ ] Preview thay đổi (optional)
 
-#### Issues & Notes:
-<!-- Ghi lại các vấn đề gặp phải khi implement -->
+#### Files:
+- `src/app/admin/(dashboard)/settings/page.tsx`
 
 ---
 
 ### Task 7.10: Quản lý trạng thái đơn (Order Statuses)
-**Status:** `[ ]` Pending
+**Status:** `[x]` Completed
 
 #### To-Do:
-- [ ] Tạo route `/admin/order-statuses`
-- [ ] List view với:
+- [x] Tạo route `/admin/order-statuses`
+- [x] List view với:
   - Badge preview
-  - Code
-  - Tên (VI/EN)
-  - Is default
-  - Is final
+  - Tên
+  - Màu
+  - Thứ tự hiển thị
+  - Số đơn đang sử dụng
   - Actions
-- [ ] Create status:
-  - Code (unique)
-  - Tên (VI/EN)
-  - Màu badge (color picker)
-  - Is default (checkbox)
-  - Is final (checkbox)
-  - Sort order
-- [ ] Edit status
-- [ ] Delete status (không cho xóa nếu đang được sử dụng)
-- [ ] Drag & drop reorder
+- [x] Create status: tên, màu (color picker), display_order
+- [x] Edit status
+- [x] Delete status (không cho xóa nếu đang được sử dụng)
 
-#### Issues & Notes:
-<!-- Ghi lại các vấn đề gặp phải khi implement -->
+#### Files:
+- `src/app/admin/(dashboard)/order-statuses/page.tsx`
 
 ---
 
 ### Task 7.11: Cấu hình ngày - Gán tier cho ngày
-**Status:** `[ ]` Pending
+**Status:** `[x]` Completed
 
 #### To-Do:
-- [ ] Tạo route `/admin/date-config` hoặc tab trong `/admin/price-tiers`
-- [ ] Calendar view (tháng)
-- [ ] Click ngày → Popup:
-  - Chọn tier từ dropdown
-  - Enable/Disable checkbox
-  - Ghi chú text field
+- [x] Tạo route `/admin/date-config`
+- [x] Calendar view (tháng) với react-day-picker
+- [x] Click ngày → Modal:
+  - Chọn tier từ danh sách
+  - Option "Không gán" để xóa
   - Save button
-- [ ] Bulk assign:
-  - Select nhiều ngày
-  - Assign cùng tier
-- [ ] Visual:
-  - Ngày có tier: hiển thị màu
-  - Ngày disabled: gray + icon
-  - Ngày chưa gán: white/neutral
-- [ ] Copy từ năm trước (optional)
+- [x] Visual:
+  - Ngày có tier: hiển thị màu + tên tier
+  - Ngày chưa gán: neutral
+- [ ] Bulk assign - optional
+- [ ] Copy từ năm trước - optional
 
-#### Issues & Notes:
-<!-- Ghi lại các vấn đề gặp phải khi implement -->
+#### Files:
+- `src/app/admin/(dashboard)/date-config/page.tsx`
 
 ---
 
@@ -305,16 +286,16 @@ Xây dựng Admin panel hoàn chỉnh để quản lý đơn hàng, sản phẩm
 
 ## Deliverables Checklist
 
-- [ ] Admin login/logout hoạt động
-- [ ] Dashboard với stats
-- [ ] Schedule Calendar với chi tiết đơn theo ngày
-- [ ] Quản lý đơn hàng (list + detail + status update)
-- [ ] Quản lý sản phẩm (CRUD)
-- [ ] Quản lý Price Tiers (CRUD)
-- [ ] Cấu hình ngày (gán tier, enable/disable)
-- [ ] Quản lý Order Statuses (CRUD)
-- [ ] Site Settings (edit)
-- [ ] Thống kê doanh thu
+- [x] Admin login/logout hoạt động
+- [x] Dashboard với stats
+- [x] Schedule Calendar với chi tiết đơn theo ngày
+- [x] Quản lý đơn hàng (list + detail + status update)
+- [x] Quản lý sản phẩm (CRUD)
+- [x] Quản lý Price Tiers (CRUD)
+- [x] Cấu hình ngày (gán tier)
+- [x] Quản lý Order Statuses (CRUD)
+- [x] Site Settings (edit)
+- [x] Thống kê doanh thu
 
 ---
 
@@ -382,4 +363,4 @@ middleware.ts                 # Auth middleware for /admin
 
 ---
 
-*Last Updated: 2026-01-26*
+*Last Updated: 2026-01-31*

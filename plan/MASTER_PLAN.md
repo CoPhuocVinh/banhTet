@@ -18,7 +18,7 @@ Web application đặt và bán bánh tét Tết với hiệu ứng 3D, đa ngô
 | 4 | Checkout & Order | `[x]` Completed | 6 tasks | [Phase 4](phase-4/README.md) |
 | 5 | Polish & Optimization | `[~]` In Progress | 8 tasks | [Phase 5](phase-5/README.md) |
 | 6 | Deployment | `[ ]` Pending | 5 tasks | [Phase 6](phase-6/README.md) |
-| 7 | Admin Dashboard | `[ ]` Pending | 11 tasks | [Phase 7](phase-7/README.md) |
+| 7 | Admin Dashboard | `[x]` Completed | 11 tasks | [Phase 7](phase-7/README.md) |
 
 **Tổng:** 53 tasks
 
@@ -230,5 +230,6 @@ Khi implement to-do mà **gặp vấn đề**, PHẢI note ngay vào to-do đó:
 ---
 
 *Created: 2026-01-26*
-*Last updated: 2026-01-27*
+*Last updated: 2026-01-31*
 *Phase 4 completed: 2026-01-27*
+*Phase 7 completed: 2026-01-31*
