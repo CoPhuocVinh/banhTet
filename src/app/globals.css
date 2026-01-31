@@ -1,0 +1,142 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-family-sans: var(--font-sans);
+  --font-family-mono: var(--font-mono);
+
+  /* Bánh Tét Tết Theme Colors */
+  --color-tet-red: #C41E3A;
+  --color-tet-gold: #FFD700;
+  --color-tet-green: #2E5339;
+  --color-tet-cream: #FFFEF5;
+  --color-tet-brown: #5D4037;
+
+  /* Additional color shades */
+  --color-tet-red-light: #D84A63;
+  --color-tet-red-dark: #9A1830;
+  --color-tet-green-light: #3D6B4A;
+  --color-tet-green-dark: #1E3626;
+  --color-tet-gold-light: #FFE44D;
+  --color-tet-gold-dark: #CCB000;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+}
+
+:root {
+  --radius: 0.625rem;
+  /* Bánh Tét Tết Theme - Light Mode */
+  --background: #FFFEF5; /* Trắng Ngà */
+  --foreground: #2E5339; /* Xanh Lá Chuối */
+  --card: #ffffff;
+  --card-foreground: #2E5339;
+  --popover: #ffffff;
+  --popover-foreground: #2E5339;
+  --primary: #C41E3A; /* Đỏ Tết */
+  --primary-foreground: #FFFEF5;
+  --secondary: #2E5339; /* Xanh Lá Chuối */
+  --secondary-foreground: #FFFEF5;
+  --muted: #f5f5f0;
+  --muted-foreground: #5D4037; /* Nâu Đất */
+  --accent: #FFD700; /* Vàng Ánh Kim */
+  --accent-foreground: #2E5339;
+  --destructive: #C41E3A;
+  --border: #e5e5dc;
+  --input: #e5e5dc;
+  --ring: #C41E3A;
+  --chart-1: #C41E3A;
+  --chart-2: #2E5339;
+  --chart-3: #FFD700;
+  --chart-4: #5D4037;
+  --chart-5: #D84A63;
+  --sidebar: #FFFEF5;
+  --sidebar-foreground: #2E5339;
+  --sidebar-primary: #C41E3A;
+  --sidebar-primary-foreground: #FFFEF5;
+  --sidebar-accent: #FFD700;
+  --sidebar-accent-foreground: #2E5339;
+  --sidebar-border: #e5e5dc;
+  --sidebar-ring: #C41E3A;
+}
+
+.dark {
+  /* Bánh Tét Tết Theme - Dark Mode */
+  --background: #1E3626; /* Dark Xanh Lá */
+  --foreground: #FFFEF5;
+  --card: #2E5339;
+  --card-foreground: #FFFEF5;
+  --popover: #2E5339;
+  --popover-foreground: #FFFEF5;
+  --primary: #D84A63; /* Light Đỏ Tết */
+  --primary-foreground: #FFFEF5;
+  --secondary: #3D6B4A;
+  --secondary-foreground: #FFFEF5;
+  --muted: #3D6B4A;
+  --muted-foreground: #ccccbb;
+  --accent: #FFD700;
+  --accent-foreground: #1E3626;
+  --destructive: #D84A63;
+  --border: rgba(255, 254, 245, 0.1);
+  --input: rgba(255, 254, 245, 0.15);
+  --ring: #D84A63;
+  --chart-1: #D84A63;
+  --chart-2: #3D6B4A;
+  --chart-3: #FFD700;
+  --chart-4: #8B6B61;
+  --chart-5: #C41E3A;
+  --sidebar: #1E3626;
+  --sidebar-foreground: #FFFEF5;
+  --sidebar-primary: #D84A63;
+  --sidebar-primary-foreground: #FFFEF5;
+  --sidebar-accent: #FFD700;
+  --sidebar-accent-foreground: #1E3626;
+  --sidebar-border: rgba(255, 254, 245, 0.1);
+  --sidebar-ring: #D84A63;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

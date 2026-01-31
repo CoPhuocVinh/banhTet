@@ -1,0 +1,108 @@
+{
+  "common": {
+    "loading": "Đang tải...",
+    "error": "Đã xảy ra lỗi",
+    "retry": "Thử lại",
+    "close": "Đóng",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "submit": "Gửi",
+    "search": "Tìm kiếm",
+    "viewAll": "Xem tất cả"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "products": "Sản phẩm",
+    "about": "Giới thiệu",
+    "contact": "Liên hệ",
+    "cart": "Giỏ hàng",
+    "order": "Đặt hàng"
+  },
+  "hero": {
+    "title": "Bánh Tét",
+    "titleHighlight": "Tết",
+    "subtitle": "Hương vị truyền thống - Chất lượng hiện đại",
+    "cta": "Đặt Hàng Ngay",
+    "viewProducts": "Xem Sản Phẩm",
+    "features": {
+      "natural": "Nguyên liệu tự nhiên",
+      "delivery": "Giao hàng tận nơi",
+      "quality": "Đảm bảo chất lượng"
+    }
+  },
+  "products": {
+    "title": "Sản Phẩm",
+    "addToCart": "Thêm vào giỏ",
+    "viewDetail": "Xem chi tiết",
+    "price": "Giá",
+    "quantity": "Số lượng",
+    "outOfStock": "Hết hàng",
+    "inStock": "Còn hàng"
+  },
+  "cart": {
+    "title": "Giỏ Hàng",
+    "empty": "Giỏ hàng trống",
+    "total": "Tổng cộng",
+    "subtotal": "Tạm tính",
+    "checkout": "Thanh toán",
+    "continueShopping": "Tiếp tục mua sắm",
+    "remove": "Xóa",
+    "updateQuantity": "Cập nhật số lượng"
+  },
+  "checkout": {
+    "title": "Thanh Toán",
+    "customerInfo": "Thông tin khách hàng",
+    "deliveryInfo": "Thông tin giao hàng",
+    "deliveryDate": "Ngày nhận hàng",
+    "paymentMethod": "Phương thức thanh toán",
+    "orderSummary": "Tóm tắt đơn hàng",
+    "placeOrder": "Đặt hàng",
+    "form": {
+      "name": "Họ và tên",
+      "phone": "Số điện thoại",
+      "email": "Email",
+      "address": "Địa chỉ",
+      "note": "Ghi chú"
+    }
+  },
+  "order": {
+    "success": "Đặt hàng thành công!",
+    "thankYou": "Cảm ơn bạn đã đặt hàng",
+    "orderId": "Mã đơn hàng",
+    "trackOrder": "Theo dõi đơn hàng"
+  },
+  "pricing": {
+    "title": "Bảng Giá",
+    "normalDay": "Ngày thường",
+    "peakDay": "Ngày cao điểm",
+    "tetDay": "Ngày Tết",
+    "perItem": "/cái"
+  },
+  "footer": {
+    "description": "Bánh tét truyền thống, chất lượng cao, giao hàng tận nơi.",
+    "quickLinks": "Liên kết nhanh",
+    "contact": "Liên hệ",
+    "followUs": "Theo dõi chúng tôi",
+    "copyright": "© 2026 Bánh Tét Tết. Bảo lưu mọi quyền."
+  },
+  "calendar": {
+    "selectDate": "Chọn ngày nhận",
+    "lunarDate": "Âm lịch",
+    "solarDate": "Dương lịch"
+  },
+  "brand": {
+    "title": "Về chúng tôi",
+    "subtitle": "Hương vị truyền thống, chất lượng hiện đại",
+    "description1": "Với hơn 10 năm kinh nghiệm, chúng tôi tự hào mang đến những chiếc bánh tét thơm ngon, được làm từ nguyên liệu tươi sạch và công thức gia truyền.",
+    "description2": "Từ lá chuối tươi đến nếp thơm, đậu xanh bùi béo - tất cả đều được chọn lọc kỹ càng.",
+    "stats": {
+      "products": "Loại bánh",
+      "customers": "Khách hàng",
+      "experience": "Năm kinh nghiệm",
+      "satisfaction": "Hài lòng"
+    }
+  }
+}

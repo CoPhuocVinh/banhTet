@@ -1,0 +1,108 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "close": "Close",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "search": "Search",
+    "viewAll": "View all"
+  },
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "about": "About",
+    "contact": "Contact",
+    "cart": "Cart",
+    "order": "Order"
+  },
+  "hero": {
+    "title": "Bánh Tét",
+    "titleHighlight": "Tết",
+    "subtitle": "Traditional taste - Modern quality",
+    "cta": "Order Now",
+    "viewProducts": "View Products",
+    "features": {
+      "natural": "Natural ingredients",
+      "delivery": "Home delivery",
+      "quality": "Quality guaranteed"
+    }
+  },
+  "products": {
+    "title": "Products",
+    "addToCart": "Add to cart",
+    "viewDetail": "View details",
+    "price": "Price",
+    "quantity": "Quantity",
+    "outOfStock": "Out of stock",
+    "inStock": "In stock"
+  },
+  "cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "checkout": "Checkout",
+    "continueShopping": "Continue shopping",
+    "remove": "Remove",
+    "updateQuantity": "Update quantity"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "customerInfo": "Customer Information",
+    "deliveryInfo": "Delivery Information",
+    "deliveryDate": "Delivery Date",
+    "paymentMethod": "Payment Method",
+    "orderSummary": "Order Summary",
+    "placeOrder": "Place Order",
+    "form": {
+      "name": "Full name",
+      "phone": "Phone number",
+      "email": "Email",
+      "address": "Address",
+      "note": "Note"
+    }
+  },
+  "order": {
+    "success": "Order placed successfully!",
+    "thankYou": "Thank you for your order",
+    "orderId": "Order ID",
+    "trackOrder": "Track order"
+  },
+  "pricing": {
+    "title": "Pricing",
+    "normalDay": "Regular days",
+    "peakDay": "Peak days",
+    "tetDay": "Tet days",
+    "perItem": "/each"
+  },
+  "footer": {
+    "description": "Traditional bánh tét, high quality, home delivery.",
+    "quickLinks": "Quick Links",
+    "contact": "Contact",
+    "followUs": "Follow Us",
+    "copyright": "© 2026 Bánh Tét Tết. All rights reserved."
+  },
+  "calendar": {
+    "selectDate": "Select delivery date",
+    "lunarDate": "Lunar date",
+    "solarDate": "Solar date"
+  },
+  "brand": {
+    "title": "About Us",
+    "subtitle": "Traditional taste, modern quality",
+    "description1": "With over 10 years of experience, we proudly bring you delicious bánh tét made from fresh ingredients and traditional recipes.",
+    "description2": "From fresh banana leaves to fragrant sticky rice and creamy mung beans - everything is carefully selected.",
+    "stats": {
+      "products": "Types of bánh",
+      "customers": "Customers",
+      "experience": "Years experience",
+      "satisfaction": "Satisfaction"
+    }
+  }
+}
