@@ -8,10 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, LogIn } from "lucide-react";
 
-// Root account - bypass Supabase Auth
-const ROOT_EMAIL = "root@admin.local";
-const ROOT_PASSWORD = "root123456";
-
 export default function AdminLoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -25,10 +21,14 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      // Check root account first (bypass Supabase)
-      if (email === ROOT_EMAIL && password === ROOT_PASSWORD) {
-        // Set root session cookie
-        document.cookie = `admin_root_session=true; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 days
+      // Try root admin login via API first
+      const rootResponse = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (rootResponse.ok) {
         router.push("/admin");
         router.refresh();
         return;

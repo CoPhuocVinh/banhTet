@@ -22,9 +22,10 @@ import { Separator } from "@/components/ui/separator";
 
 interface OrderSuccessClientProps {
   orderCode?: string;
+  contactPhone?: string;
 }
 
-export function OrderSuccessClient({ orderCode }: OrderSuccessClientProps) {
+export function OrderSuccessClient({ orderCode, contactPhone = "0901234567" }: OrderSuccessClientProps) {
   const locale = useLocale();
   const [copied, setCopied] = useState(false);
 
@@ -196,7 +197,7 @@ export function OrderSuccessClient({ orderCode }: OrderSuccessClientProps) {
                   : "If you have any questions, please contact:"}
               </p>
               <p className="font-semibold text-foreground mt-2">
-                Hotline: 0901 234 567
+                Hotline: {contactPhone}
               </p>
               <p className="text-sm text-muted-foreground">
                 {locale === "vi"

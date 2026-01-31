@@ -46,6 +46,7 @@ import {
   type CheckoutFormData,
 } from "@/lib/validations/checkout";
 import { formatPriceWithCurrency, getPriceForDate } from "@/lib/pricing";
+import { getImageUrl } from "@/lib/utils";
 import type { PriceTier, DateTierAssignment } from "@/lib/supabase/types";
 
 interface CheckoutPageClientProps {
@@ -468,11 +469,7 @@ export function CheckoutPageClient({
                           <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                             {item.product.image_url ? (
                               <Image
-                                src={
-                                  item.product.image_url.startsWith("http")
-                                    ? item.product.image_url
-                                    : `https://cdn.efl.vn/banhTetImg/${item.product.image_url}`
-                                }
+                                src={getImageUrl(item.product.image_url)}
                                 alt={item.product.name}
                                 fill
                                 sizes="64px"

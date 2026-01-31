@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ProductCard } from "@/components/features";
 import { useCartStore } from "@/lib/stores/cart-store";
+import { getImageUrl } from "@/lib/utils";
 import type { ProductWithPrices } from "@/lib/api/products";
 
 function formatPrice(price: number): string {
@@ -47,11 +48,7 @@ export function ProductDetailClient({
   const [addedToCart, setAddedToCart] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
 
-  const imageUrl = product.image_url
-    ? product.image_url.startsWith("http")
-      ? product.image_url
-      : `https://cdn.efl.vn/banhTetImg/${product.image_url}`
-    : null;
+  const imageUrl = product.image_url ? getImageUrl(product.image_url) : null;
 
   const isVegetarian =
     product.name.toLowerCase().includes("chay") ||

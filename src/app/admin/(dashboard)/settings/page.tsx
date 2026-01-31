@@ -9,11 +9,11 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 type SettingsForm = {
-  contact_hotline: string;
+  contact_phone: string;
   contact_email: string;
   contact_address: string;
-  social_facebook: string;
-  social_zalo: string;
+  facebook_url: string;
+  zalo_url: string;
   brand_name_vi: string;
   brand_name_en: string;
   brand_slogan_vi: string;
@@ -21,11 +21,11 @@ type SettingsForm = {
 };
 
 const defaultSettings: SettingsForm = {
-  contact_hotline: "",
+  contact_phone: "",
   contact_email: "",
   contact_address: "",
-  social_facebook: "",
-  social_zalo: "",
+  facebook_url: "",
+  zalo_url: "",
   brand_name_vi: "",
   brand_name_en: "",
   brand_slogan_vi: "",
@@ -140,12 +140,12 @@ export default function SettingsPage() {
         </h2>
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="hotline">Hotline</Label>
+            <Label htmlFor="phone">Số điện thoại</Label>
             <Input
-              id="hotline"
-              value={settings.contact_hotline}
+              id="phone"
+              value={settings.contact_phone}
               onChange={(e) =>
-                setSettings({ ...settings, contact_hotline: e.target.value })
+                setSettings({ ...settings, contact_phone: e.target.value })
               }
               placeholder="0909 123 456"
             />
@@ -188,9 +188,9 @@ export default function SettingsPage() {
             <Label htmlFor="facebook">Facebook</Label>
             <Input
               id="facebook"
-              value={settings.social_facebook}
+              value={settings.facebook_url}
               onChange={(e) =>
-                setSettings({ ...settings, social_facebook: e.target.value })
+                setSettings({ ...settings, facebook_url: e.target.value })
               }
               placeholder="https://facebook.com/banhtet"
             />
@@ -200,9 +200,9 @@ export default function SettingsPage() {
             <Label htmlFor="zalo">Zalo</Label>
             <Input
               id="zalo"
-              value={settings.social_zalo}
+              value={settings.zalo_url}
               onChange={(e) =>
-                setSettings({ ...settings, social_zalo: e.target.value })
+                setSettings({ ...settings, zalo_url: e.target.value })
               }
               placeholder="https://zalo.me/0909123456"
             />

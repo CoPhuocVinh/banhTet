@@ -17,6 +17,7 @@ import {
   LogOut,
   Menu,
   X,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -73,6 +74,16 @@ const menuItems = [
     icon: BarChart3,
   },
   {
+    title: "divider",
+    href: "",
+    icon: null,
+  },
+  {
+    title: "Về chúng tôi",
+    href: "/admin/about",
+    icon: Info,
+  },
+  {
     title: "Cài đặt",
     href: "/admin/settings",
     icon: Settings,
@@ -85,8 +96,8 @@ export function AdminSidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
-    // Clear root session cookie
-    document.cookie = "admin_root_session=; path=/; max-age=0";
+    // Clear root session cookie via API (httpOnly cookie)
+    await fetch("/api/admin/logout", { method: "POST" });
     // Also sign out from Supabase
     const supabase = createClient();
     await supabase.auth.signOut();

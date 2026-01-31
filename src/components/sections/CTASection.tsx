@@ -2,21 +2,48 @@
 
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Phone, MessageCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
 
-interface CTASectionProps {
-  phoneNumber?: string;
-  zaloUrl?: string;
-}
+type CTASettings = {
+  contact_phone: string;
+  zalo_url: string;
+};
 
-export function CTASection({
-  phoneNumber = "0901234567",
-  zaloUrl = "https://zalo.me/banhtettet",
-}: CTASectionProps) {
+const defaultSettings: CTASettings = {
+  contact_phone: "0901234567",
+  zalo_url: "https://zalo.me/banhtettet",
+};
+
+export function CTASection() {
   const t = useTranslations("hero");
   const locale = useLocale();
+  const [settings, setSettings] = useState<CTASettings>(defaultSettings);
+
+  useEffect(() => {
+    async function fetchSettings() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("site_settings")
+        .select("key, value")
+        .in("key", ["contact_phone", "zalo_url"]);
+
+      if (data && data.length > 0) {
+        const loadedSettings = { ...defaultSettings };
+        data.forEach((item: { key: string; value: string }) => {
+          if (item.key in loadedSettings) {
+            loadedSettings[item.key as keyof CTASettings] = item.value;
+          }
+        });
+        setSettings(loadedSettings);
+      }
+    }
+
+    fetchSettings();
+  }, []);
 
   return (
     <section className="py-20 bg-gradient-to-br from-primary via-primary to-tet-red-dark text-primary-foreground relative overflow-hidden">
@@ -76,13 +103,13 @@ export function CTASection({
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
-            <a href={`tel:${phoneNumber}`}>
+            <a href={`tel:${settings.contact_phone}`}>
               <Button
                 size="lg"
                 className="rounded-full px-8 text-base gap-2 bg-white/20 border border-white/30 text-white hover:bg-white/30"
               >
                 <Phone className="h-4 w-4" />
-                Gọi ngay: {phoneNumber}
+                Gọi ngay: {settings.contact_phone}
               </Button>
             </a>
           </div>
@@ -91,7 +118,7 @@ export function CTASection({
           <p className="text-primary-foreground/70 text-sm">
             Hoặc liên hệ qua{" "}
             <a
-              href={zaloUrl}
+              href={settings.zalo_url}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-accent hover:underline font-medium"

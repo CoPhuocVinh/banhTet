@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useTranslations } from "next-intl";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Utensils, Heart, Clock, Users } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 const fadeInLeft = {
   hidden: { opacity: 0, x: -30 },
@@ -26,15 +27,81 @@ const staggerContainer = {
   },
 };
 
-const stats = [
-  { icon: Utensils, value: "8+", label: "Loại bánh" },
-  { icon: Heart, value: "1000+", label: "Khách hàng" },
-  { icon: Clock, value: "10+", label: "Năm kinh nghiệm" },
-  { icon: Users, value: "100%", label: "Hài lòng" },
-];
+const statIcons = [Utensils, Heart, Clock, Users];
+
+type AboutSettings = {
+  about_section_label: string;
+  about_title: string;
+  about_title_highlight: string;
+  about_description1: string;
+  about_description2: string;
+  about_image_url: string;
+  about_badge_value: string;
+  about_badge_label: string;
+  about_stat1_value: string;
+  about_stat1_label: string;
+  about_stat2_value: string;
+  about_stat2_label: string;
+  about_stat3_value: string;
+  about_stat3_label: string;
+  about_stat4_value: string;
+  about_stat4_label: string;
+};
+
+const defaultSettings: AboutSettings = {
+  about_section_label: "Về chúng tôi",
+  about_title: "Hương vị truyền thống,",
+  about_title_highlight: "chất lượng hiện đại",
+  about_description1:
+    "Với hơn 10 năm kinh nghiệm, chúng tôi tự hào mang đến những chiếc bánh tét thơm ngon, được làm từ nguyên liệu tươi sạch và công thức gia truyền. Mỗi chiếc bánh là tâm huyết của người thợ làm bánh, gói trọn hương vị Tết Việt.",
+  about_description2:
+    "Từ lá chuối tươi đến nếp thơm, đậu xanh bùi béo - tất cả đều được chọn lọc kỹ càng. Chúng tôi cam kết mang đến cho bạn những chiếc bánh tét ngon nhất, an toàn nhất.",
+  about_image_url: "https://cdn.efl.vn/banhTetImg/brand-story.jpg",
+  about_badge_value: "10+",
+  about_badge_label: "Năm kinh nghiệm",
+  about_stat1_value: "8+",
+  about_stat1_label: "Loại bánh",
+  about_stat2_value: "1000+",
+  about_stat2_label: "Khách hàng",
+  about_stat3_value: "10+",
+  about_stat3_label: "Năm kinh nghiệm",
+  about_stat4_value: "100%",
+  about_stat4_label: "Hài lòng",
+};
+
+const settingKeys = Object.keys(defaultSettings) as (keyof AboutSettings)[];
 
 export function BrandSection() {
-  const t = useTranslations("brand");
+  const [settings, setSettings] = useState<AboutSettings>(defaultSettings);
+
+  useEffect(() => {
+    async function fetchSettings() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("site_settings")
+        .select("key, value")
+        .in("key", settingKeys);
+
+      if (data && data.length > 0) {
+        const loadedSettings = { ...defaultSettings };
+        data.forEach((item: { key: string; value: string }) => {
+          if (item.key in loadedSettings) {
+            loadedSettings[item.key as keyof AboutSettings] = item.value;
+          }
+        });
+        setSettings(loadedSettings);
+      }
+    }
+
+    fetchSettings();
+  }, []);
+
+  const stats = [
+    { icon: statIcons[0], value: settings.about_stat1_value, label: settings.about_stat1_label },
+    { icon: statIcons[1], value: settings.about_stat2_value, label: settings.about_stat2_label },
+    { icon: statIcons[2], value: settings.about_stat3_value, label: settings.about_stat3_label },
+    { icon: statIcons[3], value: settings.about_stat4_value, label: settings.about_stat4_label },
+  ];
 
   return (
     <section id="about" className="py-20 bg-muted/30">
@@ -57,7 +124,7 @@ export function BrandSection() {
               {/* Main image */}
               <div className="relative rounded-2xl overflow-hidden shadow-2xl">
                 <Image
-                  src="https://cdn.efl.vn/banhTetImg/brand-story.jpg"
+                  src={settings.about_image_url}
                   alt="Quy trình làm bánh tét"
                   width={600}
                   height={600}
@@ -76,8 +143,12 @@ export function BrandSection() {
                 viewport={{ once: true }}
                 transition={{ delay: 0.5, type: "spring" }}
               >
-                <p className="text-3xl font-bold text-primary">10+</p>
-                <p className="text-sm text-muted-foreground">Năm kinh nghiệm</p>
+                <p className="text-3xl font-bold text-primary">
+                  {settings.about_badge_value}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {settings.about_badge_label}
+                </p>
               </motion.div>
             </div>
           </motion.div>
@@ -92,11 +163,11 @@ export function BrandSection() {
           >
             <motion.div variants={fadeInRight}>
               <span className="text-primary font-medium uppercase tracking-wider text-sm">
-                Về chúng tôi
+                {settings.about_section_label}
               </span>
               <h2 className="text-3xl md:text-4xl font-bold text-secondary mt-2">
-                Hương vị truyền thống,{" "}
-                <span className="text-primary">chất lượng hiện đại</span>
+                {settings.about_title}{" "}
+                <span className="text-primary">{settings.about_title_highlight}</span>
               </h2>
             </motion.div>
 
@@ -104,19 +175,14 @@ export function BrandSection() {
               className="text-muted-foreground text-lg leading-relaxed"
               variants={fadeInRight}
             >
-              Với hơn 10 năm kinh nghiệm, chúng tôi tự hào mang đến những chiếc
-              bánh tét thơm ngon, được làm từ nguyên liệu tươi sạch và công thức
-              gia truyền. Mỗi chiếc bánh là tâm huyết của người thợ làm bánh,
-              gói trọn hương vị Tết Việt.
+              {settings.about_description1}
             </motion.p>
 
             <motion.p
               className="text-muted-foreground leading-relaxed"
               variants={fadeInRight}
             >
-              Từ lá chuối tươi đến nếp thơm, đậu xanh bùi béo - tất cả đều được
-              chọn lọc kỹ càng. Chúng tôi cam kết mang đến cho bạn những chiếc
-              bánh tét ngon nhất, an toàn nhất.
+              {settings.about_description2}
             </motion.p>
 
             {/* Stats */}

@@ -32,6 +32,7 @@ import {
   type CartItem,
 } from "@/lib/stores/cart-store";
 import { formatPriceWithCurrency } from "@/lib/pricing";
+import { getImageUrl } from "@/lib/utils";
 
 interface CartItemRowProps {
   item: CartItem;
@@ -44,9 +45,7 @@ function CartItemRow({ item, onUpdateQuantity, onRemove }: CartItemRowProps) {
   const [imageError, setImageError] = useState(false);
 
   const imageUrl = item.product.image_url
-    ? item.product.image_url.startsWith("http")
-      ? item.product.image_url
-      : `https://cdn.efl.vn/banhTetImg/${item.product.image_url}`
+    ? getImageUrl(item.product.image_url)
     : null;
 
   const itemTotal = item.product.minPrice * item.quantity;

@@ -33,17 +33,32 @@ async function getStats() {
       0
     ) || 0;
 
+  // Fetch order statuses by name to get their IDs dynamically
+  const { data: statuses } = await supabase
+    .from("order_statuses")
+    .select("id, name")
+    .in("name", ["Chờ xác nhận", "Đang giao"]);
+
+  const statusMap = (statuses as { id: string; name: string }[] | null)?.reduce(
+    (acc, s) => ({ ...acc, [s.name]: s.id }),
+    {} as Record<string, string>
+  ) || {};
+
   // Get pending orders (chờ xác nhận)
-  const { count: pendingOrders } = await supabase
-    .from("orders")
-    .select("*", { count: "exact", head: true })
-    .eq("status_id", "10000000-0000-0000-0000-000000000001");
+  const { count: pendingOrders } = statusMap["Chờ xác nhận"]
+    ? await supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .eq("status_id", statusMap["Chờ xác nhận"])
+    : { count: 0 };
 
   // Get delivering orders (đang giao)
-  const { count: deliveringOrders } = await supabase
-    .from("orders")
-    .select("*", { count: "exact", head: true })
-    .eq("status_id", "10000000-0000-0000-0000-000000000004");
+  const { count: deliveringOrders } = statusMap["Đang giao"]
+    ? await supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .eq("status_id", statusMap["Đang giao"])
+    : { count: 0 };
 
   // Get recent orders
   const { data: recentOrders } = await supabase

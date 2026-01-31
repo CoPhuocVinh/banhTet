@@ -44,6 +44,9 @@ export const checkoutSchemaEn = z.object({
   notes: z.string().max(500, "Notes are too long").optional(),
 });
 
+// UUID regex pattern (less strict than z.uuid() to allow seed UUIDs)
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // API validation schema (without locale-specific messages)
 export const orderApiSchema = z.object({
   customerName: z.string().min(2).max(100),
@@ -54,7 +57,7 @@ export const orderApiSchema = z.object({
   notes: z.string().max(500).optional(),
   items: z.array(
     z.object({
-      productId: z.string().uuid(),
+      productId: z.string().regex(uuidPattern, "Invalid product ID"),
       quantity: z.number().int().min(1).max(99),
       unitPrice: z.number().positive(),
     })

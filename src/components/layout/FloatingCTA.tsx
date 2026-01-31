@@ -7,19 +7,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Phone, MessageCircle, ShoppingCart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
-interface FloatingCTAProps {
-  phoneNumber?: string;
-  zaloUrl?: string;
-}
+type CTASettings = {
+  contact_phone: string;
+  zalo_url: string;
+};
 
-export function FloatingCTA({
-  phoneNumber = "0901234567",
-  zaloUrl = "https://zalo.me/banhtettet",
-}: FloatingCTAProps) {
+const defaultSettings: CTASettings = {
+  contact_phone: "0901234567",
+  zalo_url: "https://zalo.me/banhtettet",
+};
+
+export function FloatingCTA() {
   const locale = useLocale();
   const [isVisible, setIsVisible] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [settings, setSettings] = useState<CTASettings>(defaultSettings);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,6 +33,28 @@ export function FloatingCTA({
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    async function fetchSettings() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("site_settings")
+        .select("key, value")
+        .in("key", ["contact_phone", "zalo_url"]);
+
+      if (data && data.length > 0) {
+        const loadedSettings = { ...defaultSettings };
+        data.forEach((item: { key: string; value: string }) => {
+          if (item.key in loadedSettings) {
+            loadedSettings[item.key as keyof CTASettings] = item.value;
+          }
+        });
+        setSettings(loadedSettings);
+      }
+    }
+
+    fetchSettings();
   }, []);
 
   return (
@@ -46,7 +72,7 @@ export function FloatingCTA({
             <div className="bg-card/95 backdrop-blur-md border-t border-border shadow-lg p-3">
               <div className="flex items-center justify-between gap-2">
                 <a
-                  href={`tel:${phoneNumber}`}
+                  href={`tel:${settings.contact_phone}`}
                   className="flex-1"
                 >
                   <Button
@@ -83,7 +109,7 @@ export function FloatingCTA({
             >
               {/* Phone */}
               <motion.a
-                href={`tel:${phoneNumber}`}
+                href={`tel:${settings.contact_phone}`}
                 className={cn(
                   "flex items-center justify-center h-12 w-12 rounded-full",
                   "bg-green-500 text-white shadow-lg",
@@ -97,7 +123,7 @@ export function FloatingCTA({
 
               {/* Zalo */}
               <motion.a
-                href={zaloUrl}
+                href={settings.zalo_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(

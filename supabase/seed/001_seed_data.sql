@@ -151,14 +151,31 @@ ON CONFLICT (product_id, tier_id) DO NOTHING;
 INSERT INTO site_settings (key, value) VALUES
   ('site_name', 'Bánh Tét Tết'),
   ('site_description', 'Đặt bánh tét Tết chất lượng cao, giao hàng tận nơi'),
-  ('contact_phone', '0901234567'),
-  ('contact_email', 'contact@banhtet.vn'),
-  ('contact_address', 'TP. Hồ Chí Minh, Việt Nam'),
-  ('facebook_url', 'https://facebook.com/banhtettet'),
-  ('zalo_url', 'https://zalo.me/banhtettet'),
+  ('contact_phone', '0374027409'),
+  ('contact_email', 'cophuocvinh@banhtet.vn'),
+  ('contact_address', '70 Lữ Gia TP. Hồ Chí Minh, Việt Nam'),
+  ('facebook_url', 'https://www.facebook.com/phuocvinh.co'),
+  ('zalo_url', 'https://zalo.me/0374027409'),
   ('min_order_amount', '100000'),
   ('delivery_fee', '30000'),
-  ('free_delivery_threshold', '500000')
+  ('free_delivery_threshold', '500000'),
+  -- About Section Settings
+  ('about_section_label', 'Về chúng tôi'),
+  ('about_title', 'Hương vị truyền thống,'),
+  ('about_title_highlight', 'chất lượng hiện đại'),
+  ('about_description1', 'Với hơn 10 năm kinh nghiệm, chúng tôi tự hào mang đến những chiếc bánh tét thơm ngon, được làm từ nguyên liệu tươi sạch và công thức gia truyền. Mỗi chiếc bánh là tâm huyết của người thợ làm bánh, gói trọn hương vị Tết Việt.'),
+  ('about_description2', 'Từ lá chuối tươi đến nếp thơm, đậu xanh bùi béo - tất cả đều được chọn lọc kỹ càng. Chúng tôi cam kết mang đến cho bạn những chiếc bánh tét ngon nhất, an toàn nhất.'),
+  ('about_image_url', 'https://cdn.efl.vn/banhTetImg/brand-story.jpg'),
+  ('about_badge_value', '10+'),
+  ('about_badge_label', 'Năm kinh nghiệm'),
+  ('about_stat1_value', '8+'),
+  ('about_stat1_label', 'Loại bánh'),
+  ('about_stat2_value', '1000+'),
+  ('about_stat2_label', 'Khách hàng'),
+  ('about_stat3_value', '10+'),
+  ('about_stat3_label', 'Năm kinh nghiệm'),
+  ('about_stat4_value', '100%'),
+  ('about_stat4_label', 'Hài lòng')
 ON CONFLICT (key) DO NOTHING;
 
 -- ============================================

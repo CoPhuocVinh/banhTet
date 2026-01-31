@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { Toaster } from "sonner";
 import { locales, type Locale } from "@/i18n/config";
 import { Header, Footer, FloatingCTA } from "@/components/layout";
+import { createClient } from "@/lib/supabase/server";
 import "../globals.css";
 
 const beVietnamPro = Be_Vietnam_Pro({
@@ -89,6 +90,28 @@ interface LocaleLayoutProps {
   params: Promise<{ locale: string }>;
 }
 
+async function getSiteSettings() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("site_settings")
+    .select("key, value")
+    .in("key", [
+      "contact_phone",
+      "contact_email",
+      "contact_address",
+      "facebook_url",
+      "zalo_url",
+    ]);
+
+  if (!data) return {};
+
+  const settings: Record<string, string> = {};
+  data.forEach((item: { key: string; value: string }) => {
+    settings[item.key] = item.value;
+  });
+  return settings;
+}
+
 export default async function LocaleLayout({
   children,
   params,
@@ -103,8 +126,11 @@ export default async function LocaleLayout({
   // Enable static rendering
   setRequestLocale(locale);
 
-  // Get messages for the current locale
-  const messages = await getMessages();
+  // Get messages and site settings in parallel
+  const [messages, siteSettings] = await Promise.all([
+    getMessages(),
+    getSiteSettings(),
+  ]);
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -115,7 +141,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <Header />
           <main className="pt-16">{children}</main>
-          <Footer />
+          <Footer siteSettings={siteSettings} />
           <FloatingCTA />
           <Toaster position="top-center" richColors />
         </NextIntlClientProvider>

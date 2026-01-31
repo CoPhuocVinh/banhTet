@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { getProductBySlug, getProducts } from "@/lib/api/products";
+import { getImageUrl } from "@/lib/utils";
 import { ProductDetailClient } from "./ProductDetailClient";
 
 interface ProductDetailPageProps {
@@ -33,9 +34,7 @@ export async function generateMetadata({
       images: product.image_url
         ? [
             {
-              url: product.image_url.startsWith("http")
-                ? product.image_url
-                : `https://cdn.efl.vn/banhTetImg/${product.image_url}`,
+              url: getImageUrl(product.image_url),
               alt: product.name,
             },
           ]

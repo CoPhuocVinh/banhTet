@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/lib/stores/cart-store";
+import { getImageUrl } from "@/lib/utils";
 import type { ProductWithPrices } from "@/lib/api/products";
 
 const fadeInUp = {
@@ -47,11 +48,7 @@ export function ProductCard({
   const [glowPosition, setGlowPosition] = useState({ x: 50, y: 50 });
   const [isHovered, setIsHovered] = useState(false);
 
-  const imageUrl = product.image_url
-    ? product.image_url.startsWith("http")
-      ? product.image_url
-      : `https://cdn.efl.vn/banhTetImg/${product.image_url}`
-    : null;
+  const imageUrl = product.image_url ? getImageUrl(product.image_url) : null;
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {

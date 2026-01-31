@@ -7,11 +7,11 @@ import {
   Mail,
   MapPin,
   Calendar,
-  Copy,
   Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OrderStatusUpdater } from "./OrderStatusUpdater";
+import { CopyAddressButton } from "./CopyAddressButton";
 
 type OrderItem = {
   id: string;
@@ -303,15 +303,7 @@ export default async function OrderDetailPage({
                 <Phone className="h-5 w-5 text-green-600" />
                 <span>Gọi điện cho khách</span>
               </a>
-              <button
-                className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted transition-colors w-full text-left"
-                onClick={() => {
-                  navigator.clipboard.writeText(order.delivery_address);
-                }}
-              >
-                <Copy className="h-5 w-5 text-blue-600" />
-                <span>Sao chép địa chỉ</span>
-              </button>
+              <CopyAddressButton address={order.delivery_address} />
             </div>
           </div>
         </div>

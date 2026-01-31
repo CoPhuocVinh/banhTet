@@ -23,3 +23,17 @@ export function generateOrderCode(): string {
 
   return `BT-${year}${month}${day}-${randomPart}`;
 }
+
+/**
+ * Get the full URL for product images
+ * If the image_url is already a full URL, return it as-is
+ * Otherwise, prepend the CDN URL
+ */
+export function getImageUrl(imageUrl: string | null | undefined): string {
+  if (!imageUrl) return "";
+  if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+    return imageUrl;
+  }
+  const cdnUrl = process.env.NEXT_PUBLIC_CDN_URL || "https://cdn.efl.vn/banhTetImg";
+  return `${cdnUrl}/${imageUrl}`;
+}
