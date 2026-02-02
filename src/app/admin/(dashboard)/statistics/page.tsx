@@ -80,8 +80,17 @@ export default function StatisticsPage() {
     setLoading(true);
     const supabase = createClient();
 
-    // Fetch orders in date range
-    const { data: orders } = await supabase
+    // First, get the cancelled status ID
+    const { data: cancelledStatus } = await supabase
+      .from("order_statuses")
+      .select("id")
+      .eq("name", "Đã hủy")
+      .single();
+
+    const cancelledStatusId = (cancelledStatus as { id: string } | null)?.id;
+
+    // Fetch orders in date range (exclude cancelled orders)
+    let ordersQuery = supabase
       .from("orders")
       .select(
         `
@@ -97,6 +106,12 @@ export default function StatisticsPage() {
       )
       .gte("created_at", `${dateRange.start}T00:00:00`)
       .lte("created_at", `${dateRange.end}T23:59:59`);
+
+    if (cancelledStatusId) {
+      ordersQuery = ordersQuery.neq("status_id", cancelledStatusId);
+    }
+
+    const { data: orders } = await ordersQuery;
 
     type OrderData = {
       id: string;

@@ -23,15 +23,15 @@ INSERT INTO order_statuses (id, name, color, display_order) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================
--- Products (8 sản phẩm)
+-- Products (7 sản phẩm)
 -- ============================================
-INSERT INTO products (id, name, slug, description, weight_grams, is_available, display_order) VALUES
-
+INSERT INTO products (id, name, slug, description, image_url, weight_grams, is_available, display_order) VALUES
   (
     '20000000-0000-0000-0000-000000000002',
-    'Nhân đậu + thịt + trứng muối + 3 màu',
-    'tet-3-mau',
-    'Bánh tét nhân đậu + thịt + trứng muối + 3 màu.',
+    'Nhân đậu + thịt + trứng muối + tam sắc',
+    'nhan-dau-thit-trung-muoi-tam-sac',
+    'Bánh tét nhân đậu + thịt + trứng muối + tam sắc.',
+    'https://cdn.efl.vn/banhTetImg/1282848398419000646%20(10).jpg',
     1200,
     true,
     2
@@ -41,6 +41,7 @@ INSERT INTO products (id, name, slug, description, weight_grams, is_available, d
     'Nhân đậu + thịt + trứng muối - Loại lớn',
     'tet-thit-trung-lon',
     'Bánh tét nhân đậu + thịt + trứng muối - Loại lớn.',
+    'https://cdn.efl.vn/banhTetImg/1282848398419000646%20(13).jpg',
     1200,
     true,
     3
@@ -50,15 +51,17 @@ INSERT INTO products (id, name, slug, description, weight_grams, is_available, d
     'Nhân đậu + thịt + trứng muối - Loại nhỏ',
     'tet-thit-trung-nho',
     'Bánh tét nhân đậu + thịt + trứng muối - Loại nhỏ.',
+    'https://cdn.efl.vn/banhTetImg/b7e848f3eeaa60f439bb.jpg',
     1000,
     true,
     4
   ),
   (
     '20000000-0000-0000-0000-000000000005',
-    'Nhân đậu mỡ và chay đậu xanh',
-    'tet-dau-mo-chay',
-    'Bánh tét nhân đậu mỡ và chay đậu xanh.',
+    'Nhân chay đậu xanh tam sắc',
+    'nhan-chay-dau-xanh-tam-sac',
+    'Bánh tét nhân chay đậu xanh tam sắc.',
+    'https://cdn.efl.vn/banhTetImg/1282848398419000646%20(9).jpg',
     1000,
     true,
     5
@@ -68,6 +71,7 @@ INSERT INTO products (id, name, slug, description, weight_grams, is_available, d
     'Nhân chuối',
     'tet-chuoi',
     'Bánh tét nhân chuối.',
+    'https://cdn.efl.vn/banhTetImg/0fdf15c6b39f3dc1648e.jpg',
     800,
     true,
     6
@@ -77,6 +81,7 @@ INSERT INTO products (id, name, slug, description, weight_grams, is_available, d
     'Bánh ú nhân đậu + thịt + trứng muối + tôm khô',
     'u-thap-cam-tom-kho',
     'Bánh ú nhân đậu + thịt + trứng muối + tôm khô.',
+    'https://cdn.efl.vn/banhTetImg/1282848398419000646%20(15).jpg',
     900,
     true,
     7
@@ -86,11 +91,17 @@ INSERT INTO products (id, name, slug, description, weight_grams, is_available, d
     'Bánh ú nhân đậu + thịt + trứng muối',
     'u-thap-cam',
     'Bánh ú nhân đậu + thịt + trứng muối.',
+    'https://cdn.efl.vn/banhTetImg/1282848398419000646%20(6).jpg',
     500,
     true,
     8
   )
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET 
+  name = EXCLUDED.name,
+  slug = EXCLUDED.slug,
+  description = EXCLUDED.description,
+  image_url = EXCLUDED.image_url,
+  weight_grams = EXCLUDED.weight_grams;
 
 -- ============================================
 -- Product Tier Prices
@@ -179,25 +190,25 @@ INSERT INTO site_settings (key, value) VALUES
 ON CONFLICT (key) DO NOTHING;
 
 -- ============================================
--- Sample Date Tier Assignments (Tết 2026)
--- Mùng 1 Tết 2026 = 17/02/2026
--- Tháng Chạp năm Ất Tỵ chỉ có 29 ngày (không có ngày 30)
+-- Date Tier Assignments (Tết 2026)
 -- ============================================
--- Normal days (default tier)
--- Peak days: 23-28 Chạp
--- Tet days: 29 Chạp (Tất Niên) + Mùng 1-3
+-- Ngày thường: 02-06/02/2026
+-- Ngày cao điểm: 07-09/02/2026  
+-- Ngày Tết: 10-12/02/2026
 
 INSERT INTO date_tier_assignments (date, tier_id) VALUES
-  -- Peak days (23-28 Chạp)
-  ('2026-02-10', '00000000-0000-0000-0000-000000000002'), -- 23 Chạp
-  ('2026-02-11', '00000000-0000-0000-0000-000000000002'), -- 24 Chạp
-  ('2026-02-12', '00000000-0000-0000-0000-000000000002'), -- 25 Chạp
-  ('2026-02-13', '00000000-0000-0000-0000-000000000002'), -- 26 Chạp
-  ('2026-02-14', '00000000-0000-0000-0000-000000000002'), -- 27 Chạp
-  ('2026-02-15', '00000000-0000-0000-0000-000000000002'), -- 28 Chạp
-  -- Tet days (29 Chạp - Mùng 3)
-  ('2026-02-16', '00000000-0000-0000-0000-000000000003'), -- 29 Chạp (Tất Niên)
-  ('2026-02-17', '00000000-0000-0000-0000-000000000003'), -- Mùng 1 Tết
-  ('2026-02-18', '00000000-0000-0000-0000-000000000003'), -- Mùng 2
-  ('2026-02-19', '00000000-0000-0000-0000-000000000003')  -- Mùng 3
-ON CONFLICT (date) DO NOTHING;
+  -- Ngày thường (02-06/02)
+  ('2026-02-02', '00000000-0000-0000-0000-000000000001'),
+  ('2026-02-03', '00000000-0000-0000-0000-000000000001'),
+  ('2026-02-04', '00000000-0000-0000-0000-000000000001'),
+  ('2026-02-05', '00000000-0000-0000-0000-000000000001'),
+  ('2026-02-06', '00000000-0000-0000-0000-000000000001'),
+  -- Ngày cao điểm (07-09/02)
+  ('2026-02-07', '00000000-0000-0000-0000-000000000002'),
+  ('2026-02-08', '00000000-0000-0000-0000-000000000002'),
+  ('2026-02-09', '00000000-0000-0000-0000-000000000002'),
+  -- Ngày Tết (10-12/02)
+  ('2026-02-10', '00000000-0000-0000-0000-000000000003'),
+  ('2026-02-11', '00000000-0000-0000-0000-000000000003'),
+  ('2026-02-12', '00000000-0000-0000-0000-000000000003')
+ON CONFLICT (date) DO UPDATE SET tier_id = EXCLUDED.tier_id;

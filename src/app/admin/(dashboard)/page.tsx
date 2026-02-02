@@ -13,36 +13,50 @@ async function getStats() {
   const supabase = await createClient();
   const today = new Date().toISOString().split("T")[0];
 
-  // Get today's orders count
-  const { count: todayOrders } = await supabase
+  // Fetch order statuses by name to get their IDs dynamically
+  const { data: statuses } = await supabase
+    .from("order_statuses")
+    .select("id, name")
+    .in("name", ["Chờ xác nhận", "Đang giao", "Đã hủy"]);
+
+  const statusMap = (statuses as { id: string; name: string }[] | null)?.reduce(
+    (acc, s) => ({ ...acc, [s.name]: s.id }),
+    {} as Record<string, string>
+  ) || {};
+
+  const cancelledStatusId = statusMap["Đã hủy"];
+
+  // Get today's orders count (exclude cancelled)
+  let todayOrdersQuery = supabase
     .from("orders")
     .select("*", { count: "exact", head: true })
     .gte("created_at", `${today}T00:00:00`)
     .lte("created_at", `${today}T23:59:59`);
 
-  // Get today's revenue
-  const { data: revenueData } = await supabase
+  if (cancelledStatusId) {
+    todayOrdersQuery = todayOrdersQuery.neq("status_id", cancelledStatusId);
+  }
+
+  const { count: todayOrders } = await todayOrdersQuery;
+
+  // Get today's revenue (exclude cancelled orders)
+  let revenueQuery = supabase
     .from("orders")
     .select("total_amount")
     .gte("created_at", `${today}T00:00:00`)
     .lte("created_at", `${today}T23:59:59`);
+
+  if (cancelledStatusId) {
+    revenueQuery = revenueQuery.neq("status_id", cancelledStatusId);
+  }
+
+  const { data: revenueData } = await revenueQuery;
 
   const todayRevenue =
     (revenueData as { total_amount: number }[] | null)?.reduce(
       (sum, order) => sum + (order.total_amount || 0),
       0
     ) || 0;
-
-  // Fetch order statuses by name to get their IDs dynamically
-  const { data: statuses } = await supabase
-    .from("order_statuses")
-    .select("id, name")
-    .in("name", ["Chờ xác nhận", "Đang giao"]);
-
-  const statusMap = (statuses as { id: string; name: string }[] | null)?.reduce(
-    (acc, s) => ({ ...acc, [s.name]: s.id }),
-    {} as Record<string, string>
-  ) || {};
 
   // Get pending orders (chờ xác nhận)
   const { count: pendingOrders } = statusMap["Chờ xác nhận"]

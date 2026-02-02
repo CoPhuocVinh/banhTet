@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { motion } from "framer-motion";
 import {
@@ -19,108 +19,128 @@ import {
 } from "date-fns";
 import { vi, enUS } from "date-fns/locale";
 import { ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { Solar } from "lunar-typescript";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
-// Price tier configurations
-const tierConfigs: Record<
-  string,
-  { name: string; color: string; bgColor: string; borderColor: string }
-> = {
-  normal: {
-    name: "Ngày thường",
-    color: "#22C55E",
-    bgColor: "bg-green-100",
-    borderColor: "border-green-300",
-  },
-  peak: {
-    name: "Ngày cao điểm",
-    color: "#F59E0B",
-    bgColor: "bg-amber-100",
-    borderColor: "border-amber-300",
-  },
-  tet: {
-    name: "Ngày Tết",
-    color: "#EF4444",
-    bgColor: "bg-red-100",
-    borderColor: "border-red-300",
-  },
+type PriceTier = {
+  id: string;
+  name: string;
+  description: string | null;
+  color: string;
 };
 
-// Sample date tier assignments - from seed data (Tết 2026)
-// Mùng 1 Tết 2026 = 17/02/2026
-// Tháng Chạp năm Ất Tỵ chỉ có 29 ngày (không có ngày 30)
-const dateTierAssignments: Record<string, "normal" | "peak" | "tet"> = {
-  // Peak days (23-28 Chạp)
-  "2026-02-10": "peak", // 23 Chạp
-  "2026-02-11": "peak", // 24 Chạp
-  "2026-02-12": "peak", // 25 Chạp
-  "2026-02-13": "peak", // 26 Chạp
-  "2026-02-14": "peak", // 27 Chạp
-  "2026-02-15": "peak", // 28 Chạp
-  // Tet days (29 Chạp - Mùng 3)
-  "2026-02-16": "tet", // 29 Chạp (Tất Niên - ngày cuối năm)
-  "2026-02-17": "tet", // Mùng 1 Tết
-  "2026-02-18": "tet", // Mùng 2
-  "2026-02-19": "tet", // Mùng 3
+type DateTierAssignment = {
+  date: string;
+  tier_id: string;
 };
 
-// Lunar date mapping for Tết 2026
-// Mùng 1 Tết 2026 = 17/02/2026
-// Tháng Chạp năm Ất Tỵ chỉ có 29 ngày (không có ngày 30)
-function getLunarDate(date: Date): string {
-  const day = date.getDate();
-  const month = date.getMonth() + 1;
+// Map hex color to tailwind classes
+function getTierColorClasses(color: string) {
+  const colorMap: Record<
+    string,
+    { bgColor: string; borderColor: string; textColor: string }
+  > = {
+    "#22C55E": {
+      bgColor: "bg-green-100",
+      borderColor: "border-green-300",
+      textColor: "text-green-700",
+    },
+    "#F59E0B": {
+      bgColor: "bg-amber-100",
+      borderColor: "border-amber-300",
+      textColor: "text-amber-700",
+    },
+    "#EF4444": {
+      bgColor: "bg-red-100",
+      borderColor: "border-red-300",
+      textColor: "text-red-700",
+    },
+  };
 
-  // Mapping for Tết 2026 period (tháng 2 dương lịch)
-  if (date.getFullYear() === 2026 && month === 2) {
-    // Tháng Chạp (tháng 12 âm lịch) - chỉ có 29 ngày
-    if (day === 1) return "14/12";
-    if (day === 2) return "15/12";
-    if (day === 3) return "16/12";
-    if (day === 4) return "17/12";
-    if (day === 5) return "18/12";
-    if (day === 6) return "19/12";
-    if (day === 7) return "20/12";
-    if (day === 8) return "21/12";
-    if (day === 9) return "22/12";
-    if (day === 10) return "23 Chạp";
-    if (day === 11) return "24 Chạp";
-    if (day === 12) return "25 Chạp";
-    if (day === 13) return "26 Chạp";
-    if (day === 14) return "27 Chạp";
-    if (day === 15) return "28 Chạp";
-    if (day === 16) return "29 Chạp"; // Tất Niên - ngày cuối năm
-    // Tháng Giêng (tháng 1 âm lịch)
-    if (day === 17) return "Mùng 1";
-    if (day === 18) return "Mùng 2";
-    if (day === 19) return "Mùng 3";
-    if (day === 20) return "Mùng 4";
-    if (day === 21) return "Mùng 5";
-    if (day === 22) return "Mùng 6";
-    if (day === 23) return "Mùng 7";
-    if (day === 24) return "Mùng 8";
-    if (day === 25) return "Mùng 9";
-    if (day === 26) return "Mùng 10";
-    if (day === 27) return "11/1";
-    if (day === 28) return "12/1";
+  return (
+    colorMap[color.toUpperCase()] || {
+      bgColor: "bg-gray-100",
+      borderColor: "border-gray-300",
+      textColor: "text-gray-700",
+    }
+  );
+}
+
+// Convert solar date to Vietnamese lunar date string
+function getLunarDate(date: Date, locale: string): string {
+  const solar = Solar.fromDate(date);
+  const lunar = solar.getLunar();
+  const day = lunar.getDay();
+  const month = lunar.getMonth();
+
+  // Vietnamese special names for Tết period
+  if (locale === "vi") {
+    // Tháng Chạp (tháng 12 âm lịch)
+    if (month === 12 && day >= 23) {
+      return `${day} Chạp`;
+    }
+    // Tháng Giêng (tháng 1 âm lịch) - Mùng 1-10
+    if (month === 1 && day <= 10) {
+      return `Mùng ${day}`;
+    }
   }
 
   return `${day}/${month}`;
 }
 
-function getTierForDate(date: Date): "normal" | "peak" | "tet" | null {
-  const dateStr = format(date, "yyyy-MM-dd");
-  return dateTierAssignments[dateStr] || null;
-}
-
 export function ScheduleCalendar() {
   const t = useTranslations("calendar");
   const locale = useLocale();
-  const [currentMonth, setCurrentMonth] = useState(new Date(2026, 1, 1)); // February 2026 for demo
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    // Start with current month, or Feb 2026 if we're before that
+    const now = new Date();
+    const feb2026 = new Date(2026, 1, 1);
+    return now < feb2026 ? feb2026 : now;
+  });
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [priceTiers, setPriceTiers] = useState<PriceTier[]>([]);
+  const [dateTierAssignments, setDateTierAssignments] = useState<
+    Record<string, string>
+  >({});
+  const [loading, setLoading] = useState(true);
 
   const dateLocale = locale === "vi" ? vi : enUS;
+
+  // Fetch data from database
+  useEffect(() => {
+    async function fetchData() {
+      const supabase = createClient();
+
+      // Fetch price tiers
+      const { data: tiers } = await supabase
+        .from("price_tiers")
+        .select("id, name, description, color")
+        .order("created_at");
+
+      // Fetch date tier assignments
+      const { data: assignments } = await supabase
+        .from("date_tier_assignments")
+        .select("date, tier_id");
+
+      if (tiers) {
+        setPriceTiers(tiers as PriceTier[]);
+      }
+
+      if (assignments) {
+        const assignmentMap: Record<string, string> = {};
+        (assignments as DateTierAssignment[]).forEach((a) => {
+          assignmentMap[a.date] = a.tier_id;
+        });
+        setDateTierAssignments(assignmentMap);
+      }
+
+      setLoading(false);
+    }
+
+    fetchData();
+  }, []);
 
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -132,6 +152,14 @@ export function ScheduleCalendar() {
 
   const weekDays = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
+  // Get tier for a specific date
+  function getTierForDate(date: Date): PriceTier | null {
+    const dateStr = format(date, "yyyy-MM-dd");
+    const tierId = dateTierAssignments[dateStr];
+    if (!tierId) return null;
+    return priceTiers.find((t) => t.id === tierId) || null;
+  }
+
   const rows = [];
   let days = [];
   let day = startDate;
@@ -140,10 +168,11 @@ export function ScheduleCalendar() {
     for (let i = 0; i < 7; i++) {
       const currentDay = day;
       const tier = getTierForDate(currentDay);
+      const tierColors = tier ? getTierColorClasses(tier.color) : null;
       const isCurrentMonth = isSameMonth(currentDay, monthStart);
       const isSelected = selectedDate && isSameDay(currentDay, selectedDate);
       const isPastDay = isPast(currentDay) && !isToday(currentDay);
-      const lunarDate = getLunarDate(currentDay);
+      const lunarDate = getLunarDate(currentDay, locale);
 
       days.push(
         <motion.button
@@ -162,18 +191,17 @@ export function ScheduleCalendar() {
             isPastDay && "opacity-40 cursor-not-allowed",
             isCurrentMonth && !isPastDay && "hover:shadow-md cursor-pointer",
             isSelected && "ring-2 ring-primary ring-offset-2",
-            tier && tierConfigs[tier].bgColor,
-            tier && tierConfigs[tier].borderColor,
-            tier && "border",
-            !tier && isCurrentMonth && "bg-card border border-border"
+            tierColors && tierColors.bgColor,
+            tierColors && tierColors.borderColor,
+            tierColors && "border",
+            !tierColors && isCurrentMonth && "bg-card border border-border"
           )}
         >
           <span
             className={cn(
               "text-sm sm:text-base font-semibold",
               isToday(currentDay) && "text-primary",
-              tier === "tet" && "text-red-700",
-              tier === "peak" && "text-amber-700"
+              tierColors && tierColors.textColor
             )}
           >
             {format(currentDay, "d")}
@@ -191,6 +219,18 @@ export function ScheduleCalendar() {
       </div>
     );
     days = [];
+  }
+
+  if (loading) {
+    return (
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-center h-[400px]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -241,12 +281,12 @@ export function ScheduleCalendar() {
 
             {/* Weekday headers */}
             <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
-              {weekDays.map((day) => (
+              {weekDays.map((d) => (
                 <div
-                  key={day}
+                  key={d}
                   className="text-center text-xs sm:text-sm font-medium text-muted-foreground py-2"
                 >
-                  {day}
+                  {d}
                 </div>
               ))}
             </div>
@@ -255,23 +295,28 @@ export function ScheduleCalendar() {
             <div className="space-y-1 sm:space-y-2">{rows}</div>
 
             {/* Legend */}
-            <div className="flex flex-wrap justify-center gap-4 mt-6 pt-6 border-t border-border">
-              {Object.entries(tierConfigs).map(([key, config]) => (
-                <div key={key} className="flex items-center gap-2">
-                  <div
-                    className={cn(
-                      "w-4 h-4 rounded",
-                      config.bgColor,
-                      config.borderColor,
-                      "border"
-                    )}
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    {config.name}
-                  </span>
-                </div>
-              ))}
-            </div>
+            {priceTiers.length > 0 && (
+              <div className="flex flex-wrap justify-center gap-4 mt-6 pt-6 border-t border-border">
+                {priceTiers.map((tier) => {
+                  const colors = getTierColorClasses(tier.color);
+                  return (
+                    <div key={tier.id} className="flex items-center gap-2">
+                      <div
+                        className={cn(
+                          "w-4 h-4 rounded",
+                          colors.bgColor,
+                          colors.borderColor,
+                          "border"
+                        )}
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {tier.name}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Selected date info */}
             {selectedDate && (
@@ -290,10 +335,11 @@ export function ScheduleCalendar() {
                     <span
                       className={cn(
                         "px-2 py-0.5 rounded text-xs font-medium",
-                        tierConfigs[getTierForDate(selectedDate)!].bgColor
+                        getTierColorClasses(getTierForDate(selectedDate)!.color)
+                          .bgColor
                       )}
                     >
-                      {tierConfigs[getTierForDate(selectedDate)!].name}
+                      {getTierForDate(selectedDate)!.name}
                     </span>
                   )}
                 </div>
