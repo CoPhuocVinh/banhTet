@@ -41,6 +41,12 @@ type ProductWithPrices = {
   prices: Record<string, number>; // tier_id -> price
 };
 
+type ProductQueryResult = {
+  id: string;
+  name: string;
+  product_tier_prices: { tier_id: string; price: number }[];
+};
+
 function formatPrice(price: number): string {
   return new Intl.NumberFormat("vi-VN").format(price);
 }
@@ -92,9 +98,10 @@ export function PricingTable() {
       }
 
       if (productsData) {
-        const formattedProducts = productsData.map((product) => {
+        const typedProducts = productsData as ProductQueryResult[];
+        const formattedProducts = typedProducts.map((product) => {
           const prices: Record<string, number> = {};
-          (product.product_tier_prices as { tier_id: string; price: number }[])?.forEach((tp) => {
+          product.product_tier_prices?.forEach((tp) => {
             prices[tp.tier_id] = tp.price;
           });
           return {

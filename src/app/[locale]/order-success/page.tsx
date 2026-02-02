@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { OrderSuccessClient } from "./OrderSuccessClient";
+import type { SiteSetting } from "@/lib/supabase/types";
 
 interface OrderSuccessPageProps {
   params: Promise<{ locale: string }>;
@@ -15,7 +16,8 @@ async function getContactPhone() {
     .select("value")
     .eq("key", "contact_phone")
     .single();
-  return data?.value || "0901234567";
+  const setting = data as Pick<SiteSetting, "value"> | null;
+  return setting?.value || "0901234567";
 }
 
 export async function generateMetadata({
