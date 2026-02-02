@@ -1,11 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Phone, Mail, MapPin, Calendar } from "lucide-react";
+import { ArrowLeft, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OrderStatusUpdater } from "./OrderStatusUpdater";
 import { CopyAddressButton } from "./CopyAddressButton";
-import { DeliveryDateChanger } from "./DeliveryDateChanger";
+import { CustomerInfoEditor } from "./CustomerInfoEditor";
 import { OrderItemEditor } from "./OrderItemEditor";
 
 type OrderItem = {
@@ -90,15 +90,6 @@ function formatCurrency(amount: number) {
   }).format(amount);
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("vi-VN", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
 function formatDateTime(dateStr: string) {
   return new Date(dateStr).toLocaleString("vi-VN");
 }
@@ -159,72 +150,15 @@ export default async function OrderDetailPage({
         {/* Customer Info */}
         <div className="lg:col-span-2 space-y-6">
           {/* Customer Details */}
-          <div className="bg-card rounded-xl border border-border p-6">
-            <h2 className="font-semibold text-secondary mb-4">
-              Thông tin khách hàng
-            </h2>
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <span className="text-lg">👤</span>
-                </div>
-                <div>
-                  <p className="font-medium text-secondary">
-                    {order.customer_name}
-                  </p>
-                  <div className="flex flex-wrap gap-4 mt-1">
-                    <a
-                      href={`tel:${order.customer_phone}`}
-                      className="flex items-center gap-1 text-sm text-primary hover:underline"
-                    >
-                      <Phone className="h-4 w-4" />
-                      {order.customer_phone}
-                    </a>
-                    {order.customer_email && (
-                      <a
-                        href={`mailto:${order.customer_email}`}
-                        className="flex items-center gap-1 text-sm text-primary hover:underline"
-                      >
-                        <Mail className="h-4 w-4" />
-                        {order.customer_email}
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <MapPin className="h-5 w-5 text-blue-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-secondary">Địa chỉ giao hàng</p>
-                  <p className="text-muted-foreground mt-1">
-                    {order.delivery_address}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                  <Calendar className="h-5 w-5 text-amber-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-secondary">Ngày giao hàng</p>
-                  <p className="text-muted-foreground mt-1">
-                    {formatDate(order.delivery_date)}
-                  </p>
-                </div>
-              </div>
-
-              {order.note && (
-                <div className="p-4 bg-muted rounded-lg">
-                  <p className="text-sm font-medium text-secondary">Ghi chú:</p>
-                  <p className="text-muted-foreground mt-1">{order.note}</p>
-                </div>
-              )}
-            </div>
-          </div>
+          <CustomerInfoEditor
+            orderId={order.id}
+            customerName={order.customer_name}
+            customerPhone={order.customer_phone}
+            customerEmail={order.customer_email}
+            deliveryAddress={order.delivery_address}
+            deliveryDate={order.delivery_date}
+            note={order.note}
+          />
 
           {/* Order Items */}
           <OrderItemEditor
@@ -274,12 +208,6 @@ export default async function OrderDetailPage({
                 <span>Gọi điện cho khách</span>
               </a>
               <CopyAddressButton address={order.delivery_address} />
-              <div className="p-3 rounded-lg border border-border">
-                <DeliveryDateChanger
-                  orderId={order.id}
-                  currentDate={order.delivery_date}
-                />
-              </div>
             </div>
           </div>
         </div>
