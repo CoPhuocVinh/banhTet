@@ -122,22 +122,21 @@ export function BrandSection() {
               <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-tet-red/10 rounded-full blur-xl" />
 
               {/* Main image */}
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+              <div className="relative h-full rounded-2xl overflow-hidden shadow-2xl">
                 <Image
                   src={settings.about_image_url}
                   alt="Quy trình làm bánh tét"
-                  width={600}
-                  height={600}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                   priority
                 />
                 {/* Overlay gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
               </div>
 
-              {/* Floating badge */}
+              {/* Floating badge - overlapping bottom right corner */}
               <motion.div
-                className="absolute -bottom-6 -right-6 bg-card p-4 rounded-xl shadow-lg"
+                className="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3 bg-card p-4 rounded-xl shadow-lg border border-border z-10"
                 initial={{ scale: 0 }}
                 whileInView={{ scale: 1 }}
                 viewport={{ once: true }}
