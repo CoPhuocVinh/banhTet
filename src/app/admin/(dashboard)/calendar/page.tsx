@@ -18,6 +18,7 @@ import {
   X,
   Plus,
   Loader2,
+  FileSpreadsheet,
 } from "lucide-react";
 import { Solar } from "lunar-typescript";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import Link from "next/link";
 import { toast } from "sonner";
+import { exportOrdersToExcel } from "@/lib/export-orders";
 
 type OrderSummary = {
   id: string;
@@ -61,8 +63,11 @@ type Product = {
   id: string;
   name: string;
   is_available: boolean;
+  prices: Record<string, number>; // tier_id -> price
   default_price: number;
 };
+
+type DateTierMap = Record<string, string>; // date -> tier_id
 
 type OrderStatus = {
   id: string;
@@ -103,7 +108,16 @@ export default function CalendarPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [orderStatuses, setOrderStatuses] = useState<OrderStatus[]>([]);
+  const [dateTierMap, setDateTierMap] = useState<DateTierMap>({});
   const [creating, setCreating] = useState(false);
+
+  // Export state
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportRange, setExportRange] = useState({
+    start: format(startOfMonth(new Date()), "yyyy-MM-dd"),
+    end: format(endOfMonth(new Date()), "yyyy-MM-dd"),
+  });
   const [formData, setFormData] = useState({
     customer_name: "",
     customer_phone: "",
@@ -122,7 +136,7 @@ export default function CalendarPage() {
   async function fetchFormData() {
     const supabase = createClient();
 
-    const [productsRes, statusesRes, tiersRes] = await Promise.all([
+    const [productsRes, statusesRes, tiersRes, dateTiersRes] = await Promise.all([
       supabase
         .from("products")
         .select("id, name, is_available, product_tier_prices(price, tier_id)")
@@ -130,7 +144,17 @@ export default function CalendarPage() {
         .order("display_order"),
       supabase.from("order_statuses").select("id, name, color").order("display_order"),
       supabase.from("price_tiers").select("id").order("created_at").limit(1),
+      supabase.from("date_tier_assignments").select("date, tier_id"),
     ]);
+
+    // Build date -> tier_id mapping
+    if (dateTiersRes.data) {
+      const tierMap: DateTierMap = {};
+      (dateTiersRes.data as { date: string; tier_id: string }[]).forEach((dt) => {
+        tierMap[dt.date] = dt.tier_id;
+      });
+      setDateTierMap(tierMap);
+    }
 
     if (productsRes.data) {
       // Get first tier id for default pricing
@@ -142,13 +166,21 @@ export default function CalendarPage() {
         is_available: boolean;
         product_tier_prices: { price: number; tier_id: string }[];
       }[]).map((p) => {
+        // Build prices map for all tiers
+        const prices: Record<string, number> = {};
+        p.product_tier_prices?.forEach((tp) => {
+          prices[tp.tier_id] = tp.price;
+        });
+
         // Find price for first tier, or use first available price
         const tierPrice = p.product_tier_prices?.find((tp) => tp.tier_id === firstTierId);
         const defaultPrice = tierPrice?.price || p.product_tier_prices?.[0]?.price || 0;
+
         return {
           id: p.id,
           name: p.name,
           is_available: p.is_available,
+          prices,
           default_price: defaultPrice,
         };
       });
@@ -393,6 +425,18 @@ export default function CalendarPage() {
     }));
   }
 
+  // Get price for product based on selected date's tier
+  function getProductPrice(product: Product): number {
+    if (!selectedDay) return product.default_price;
+
+    const tierId = dateTierMap[selectedDay.date];
+    if (tierId && product.prices[tierId]) {
+      return product.prices[tierId];
+    }
+
+    return product.default_price;
+  }
+
   function updateItem(
     index: number,
     field: "product_id" | "quantity" | "unit_price",
@@ -403,19 +447,88 @@ export default function CalendarPage() {
       items: prev.items.map((item, i) => {
         if (i !== index) return item;
 
-        // If product is selected, auto-fill the price
+        // If product is selected, auto-fill the price based on date tier
         if (field === "product_id") {
           const product = products.find((p) => p.id === value);
+          const price = product ? getProductPrice(product) : 0;
           return {
             ...item,
             product_id: value as string,
-            unit_price: product?.default_price || 0,
+            unit_price: price,
           };
         }
 
         return { ...item, [field]: value };
       }),
     }));
+  }
+
+  async function handleExport() {
+    setExportLoading(true);
+    const supabase = createClient();
+
+    try {
+      // Get cancelled status ID
+      const { data: cancelledStatus } = await supabase
+        .from("order_statuses")
+        .select("id")
+        .eq("name", "Đã hủy")
+        .single();
+
+      const cancelledStatusId = (cancelledStatus as { id: string } | null)?.id;
+
+      // Fetch orders for export (exclude cancelled)
+      let query = supabase
+        .from("orders")
+        .select(
+          `
+          order_code,
+          customer_name,
+          customer_phone,
+          delivery_date,
+          delivery_address,
+          total_amount,
+          note,
+          status_id,
+          order_statuses (name),
+          order_items (
+            quantity,
+            unit_price,
+            products (name)
+          )
+        `
+        )
+        .gte("delivery_date", exportRange.start)
+        .lte("delivery_date", exportRange.end)
+        .order("delivery_date");
+
+      if (cancelledStatusId) {
+        query = query.neq("status_id", cancelledStatusId);
+      }
+
+      const { data: orders, error } = await query;
+
+      if (error) throw error;
+
+      if (!orders || orders.length === 0) {
+        toast.error("Không có đơn hàng nào trong khoảng thời gian này");
+        return;
+      }
+
+      // Export to Excel
+      exportOrdersToExcel(
+        orders as Parameters<typeof exportOrdersToExcel>[0],
+        `don-hang-${exportRange.start}-to-${exportRange.end}`
+      );
+
+      toast.success(`Đã xuất ${orders.length} đơn hàng`);
+      setShowExportModal(false);
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Có lỗi khi xuất file");
+    } finally {
+      setExportLoading(false);
+    }
   }
 
   return (
@@ -427,6 +540,13 @@ export default function CalendarPage() {
           <p className="text-muted-foreground">Xem đơn hàng theo ngày giao</p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setShowExportModal(true)}
+          >
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            Xuất Excel
+          </Button>
           <Button
             variant="outline"
             size="icon"
@@ -847,6 +967,116 @@ export default function CalendarPage() {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          onClick={() => setShowExportModal(false)}
+        >
+          <div
+            className="bg-card rounded-xl border border-border p-6 max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-secondary">
+                Xuất danh sách đơn hàng
+              </h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowExportModal(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Từ ngày</Label>
+                  <Input
+                    type="date"
+                    value={exportRange.start}
+                    onChange={(e) =>
+                      setExportRange((prev) => ({
+                        ...prev,
+                        start: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Đến ngày</Label>
+                  <Input
+                    type="date"
+                    value={exportRange.end}
+                    onChange={(e) =>
+                      setExportRange((prev) => ({
+                        ...prev,
+                        end: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const now = new Date();
+                    setExportRange({
+                      start: format(startOfMonth(now), "yyyy-MM-dd"),
+                      end: format(endOfMonth(now), "yyyy-MM-dd"),
+                    });
+                  }}
+                >
+                  Tháng này
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setExportRange({
+                      start: format(startOfMonth(currentMonth), "yyyy-MM-dd"),
+                      end: format(endOfMonth(currentMonth), "yyyy-MM-dd"),
+                    });
+                  }}
+                >
+                  Tháng đang xem
+                </Button>
+              </div>
+
+              <p className="text-sm text-muted-foreground">
+                Đơn hàng đã hủy sẽ không được xuất
+              </p>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowExportModal(false)}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={handleExport}
+                  disabled={exportLoading}
+                >
+                  {exportLoading && (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  )}
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  Xuất Excel
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}
