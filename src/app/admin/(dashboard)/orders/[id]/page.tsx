@@ -1,17 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  Phone,
-  Mail,
-  MapPin,
-  Calendar,
-  Package,
-} from "lucide-react";
+import { ArrowLeft, Phone, Mail, MapPin, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OrderStatusUpdater } from "./OrderStatusUpdater";
 import { CopyAddressButton } from "./CopyAddressButton";
+import { DeliveryDateChanger } from "./DeliveryDateChanger";
+import { OrderItemEditor } from "./OrderItemEditor";
 
 type OrderItem = {
   id: string;
@@ -232,36 +227,11 @@ export default async function OrderDetailPage({
           </div>
 
           {/* Order Items */}
-          <div className="bg-card rounded-xl border border-border">
-            <div className="p-6 border-b border-border">
-              <h2 className="font-semibold text-secondary">
-                Sản phẩm đặt hàng
-              </h2>
-            </div>
-            <div className="divide-y divide-border">
-              {order.order_items.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-4 p-4"
-                >
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Package className="h-6 w-6 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-secondary">
-                      {item.products?.name || "Sản phẩm"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatCurrency(item.unit_price)} x {item.quantity}
-                    </p>
-                  </div>
-                  <p className="font-semibold text-secondary">
-                    {formatCurrency(item.unit_price * item.quantity)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
+          <OrderItemEditor
+            orderId={order.id}
+            items={order.order_items}
+            totalAmount={order.total_amount}
+          />
         </div>
 
         {/* Order Summary */}
@@ -304,6 +274,12 @@ export default async function OrderDetailPage({
                 <span>Gọi điện cho khách</span>
               </a>
               <CopyAddressButton address={order.delivery_address} />
+              <div className="p-3 rounded-lg border border-border">
+                <DeliveryDateChanger
+                  orderId={order.id}
+                  currentDate={order.delivery_date}
+                />
+              </div>
             </div>
           </div>
         </div>

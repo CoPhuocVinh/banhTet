@@ -288,15 +288,14 @@ export default function CalendarPage() {
         };
       }
 
-      // Only count non-cancelled orders in statistics
-      if (!isCancelled) {
-        summaries[date].orderCount += 1;
-        summaries[date].totalAmount += order.total_amount;
-        summaries[date].totalItems +=
-          order.order_items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
-      }
+      // Skip cancelled orders completely
+      if (isCancelled) return;
 
-      // But still show all orders in the list
+      summaries[date].orderCount += 1;
+      summaries[date].totalAmount += order.total_amount;
+      summaries[date].totalItems +=
+        order.order_items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+
       summaries[date].orders.push({
         id: order.id,
         order_code: order.order_code,
