@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
@@ -15,18 +15,187 @@ import {
   Minus,
   Plus,
   Check,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
 } from "lucide-react";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  addMonths,
+  subMonths,
+  isSameMonth,
+  isSameDay,
+} from "date-fns";
+import { vi, enUS } from "date-fns/locale";
+import { Solar } from "lunar-typescript";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { ProductCard } from "@/components/features";
 import { useCartStore } from "@/lib/stores/cart-store";
-import { getImageUrl } from "@/lib/utils";
+import { getImageUrl, cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 import type { ProductWithPrices } from "@/lib/api/products";
 
 function formatPrice(price: number): string {
   return new Intl.NumberFormat("vi-VN").format(price);
+}
+
+type DateTierAssignment = {
+  date: string;
+  tier_id: string;
+};
+
+// Convert solar date to Vietnamese lunar date string
+function getLunarDate(date: Date): string {
+  const solar = Solar.fromDate(date);
+  const lunar = solar.getLunar();
+  const day = lunar.getDay();
+  const month = lunar.getMonth();
+
+  if (month === 12 && day >= 23) {
+    return `${day} Chạp`;
+  }
+  if (month === 1 && day <= 10) {
+    return `Mùng ${day}`;
+  }
+
+  return `${day}/${month}`;
+}
+
+// Mini calendar component for tier popover
+function TierCalendar({
+  tierId,
+  tierColor,
+  tierName,
+  dateTierAssignments,
+  locale,
+}: {
+  tierId: string;
+  tierColor: string;
+  tierName: string;
+  dateTierAssignments: DateTierAssignment[];
+  locale: string;
+}) {
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const now = new Date();
+    const feb2026 = new Date(2026, 1, 1);
+    return now < feb2026 ? feb2026 : now;
+  });
+
+  const dateLocale = locale === "vi" ? vi : enUS;
+  const tierDates = new Set(
+    dateTierAssignments
+      .filter((d) => d.tier_id === tierId)
+      .map((d) => d.date)
+  );
+
+  const monthStart = startOfMonth(currentMonth);
+  const monthEnd = endOfMonth(monthStart);
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+
+  const weekDays = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+
+  const rows = [];
+  let days = [];
+  let day = calendarStart;
+
+  while (day <= calendarEnd) {
+    for (let i = 0; i < 7; i++) {
+      const currentDay = day;
+      const dateStr = format(currentDay, "yyyy-MM-dd");
+      const isCurrentMonth = isSameMonth(currentDay, monthStart);
+      const isToday = isSameDay(currentDay, new Date());
+      const isTierDate = tierDates.has(dateStr);
+      const lunarDate = getLunarDate(currentDay);
+
+      days.push(
+        <div
+          key={currentDay.toString()}
+          className={cn(
+            "flex flex-col items-center justify-center p-1 rounded text-xs",
+            !isCurrentMonth && "opacity-30",
+            isTierDate && "text-white font-medium",
+            isToday && !isTierDate && "ring-1 ring-primary"
+          )}
+          style={{
+            backgroundColor: isTierDate ? tierColor : undefined,
+          }}
+        >
+          <span className="text-[11px] font-medium">{format(currentDay, "d")}</span>
+          <span className="text-[8px] opacity-80">{lunarDate}</span>
+        </div>
+      );
+      day = addDays(day, 1);
+    }
+    rows.push(
+      <div key={day.toString()} className="grid grid-cols-7 gap-0.5">
+        {days}
+      </div>
+    );
+    days = [];
+  }
+
+  const tierDateCount = dateTierAssignments.filter((d) => d.tier_id === tierId).length;
+
+  return (
+    <div className="w-64">
+      <div className="flex items-center justify-between mb-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6"
+          onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <span className="text-sm font-medium">
+          {format(currentMonth, "MM/yyyy", { locale: dateLocale })}
+        </span>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6"
+          onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-7 gap-0.5 mb-1">
+        {weekDays.map((d) => (
+          <div
+            key={d}
+            className="text-center text-[10px] font-medium text-muted-foreground py-1"
+          >
+            {d}
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-0.5">{rows}</div>
+
+      <div className="mt-2 pt-2 border-t text-xs text-muted-foreground text-center">
+        <span
+          className="inline-block w-2 h-2 rounded-full mr-1"
+          style={{ backgroundColor: tierColor }}
+        />
+        {tierDateCount} {locale === "vi" ? "ngày" : "days"} - {tierName}
+      </div>
+    </div>
+  );
 }
 
 interface ProductDetailClientProps {
@@ -46,9 +215,25 @@ export function ProductDetailClient({
   const [quantity, setQuantity] = useState(1);
   const [imageError, setImageError] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [dateTierAssignments, setDateTierAssignments] = useState<DateTierAssignment[]>([]);
   const addItem = useCartStore((state) => state.addItem);
 
   const imageUrl = product.image_url ? getImageUrl(product.image_url) : null;
+
+  // Fetch date tier assignments
+  useEffect(() => {
+    async function fetchDateTiers() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("date_tier_assignments")
+        .select("date, tier_id");
+
+      if (data) {
+        setDateTierAssignments(data as DateTierAssignment[]);
+      }
+    }
+    fetchDateTiers();
+  }, []);
 
   const isVegetarian =
     product.name.toLowerCase().includes("chay") ||
@@ -185,29 +370,41 @@ export function ProductDetailClient({
               <CardContent>
                 <div className="space-y-3">
                   {product.prices.map((priceInfo) => (
-                    <div
-                      key={priceInfo.tier.id}
-                      className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/50"
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: priceInfo.tier.color }}
+                    <Popover key={priceInfo.tier.id}>
+                      <PopoverTrigger asChild>
+                        <div className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/50 cursor-pointer hover:bg-muted transition-colors group">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: priceInfo.tier.color }}
+                            />
+                            <span className="font-medium">
+                              {getTierDisplayName(priceInfo.tier.name)}
+                            </span>
+                            <Calendar className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                          <span className="font-bold text-primary">
+                            {formatPrice(priceInfo.price)}đ
+                          </span>
+                        </div>
+                      </PopoverTrigger>
+                      <PopoverContent className="p-3" align="start">
+                        <TierCalendar
+                          tierId={priceInfo.tier.id}
+                          tierColor={priceInfo.tier.color}
+                          tierName={getTierDisplayName(priceInfo.tier.name)}
+                          dateTierAssignments={dateTierAssignments}
+                          locale={locale}
                         />
-                        <span className="font-medium">
-                          {getTierDisplayName(priceInfo.tier.name)}
-                        </span>
-                      </div>
-                      <span className="font-bold text-primary">
-                        {formatPrice(priceInfo.price)}đ
-                      </span>
-                    </div>
+                      </PopoverContent>
+                    </Popover>
                   ))}
                 </div>
                 <p className="text-xs text-muted-foreground mt-3">
+                  <Calendar className="h-3 w-3 inline mr-1" />
                   {locale === "vi"
-                    ? "* Giá sẽ được tính theo ngày nhận hàng bạn chọn"
-                    : "* Price will be calculated based on your selected delivery date"}
+                    ? "Nhấn vào mỗi loại ngày để xem lịch chi tiết"
+                    : "Click on each day type to view detailed calendar"}
                 </p>
               </CardContent>
             </Card>
