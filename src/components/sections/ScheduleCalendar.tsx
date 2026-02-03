@@ -18,7 +18,7 @@ import {
   isToday,
 } from "date-fns";
 import { vi, enUS } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { ChevronLeft, ChevronRight, Info, Package } from "lucide-react";
 import { Solar } from "lunar-typescript";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,11 @@ type PriceTier = {
 type DateTierAssignment = {
   date: string;
   tier_id: string;
+};
+
+type DayStats = {
+  orderCount: number;
+  totalItems: number;
 };
 
 // Map hex color to tailwind classes
@@ -105,6 +110,8 @@ export function ScheduleCalendar() {
     Record<string, string>
   >({});
   const [loading, setLoading] = useState(true);
+  const [showStats, setShowStats] = useState(false);
+  const [dayStats, setDayStats] = useState<Record<string, DayStats>>({});
 
   const dateLocale = locale === "vi" ? vi : enUS;
 
@@ -124,6 +131,16 @@ export function ScheduleCalendar() {
         .from("date_tier_assignments")
         .select("date, tier_id");
 
+      // Fetch setting for showing order stats
+      const { data: settingData } = await supabase
+        .from("site_settings")
+        .select("value")
+        .eq("key", "show_calendar_order_stats")
+        .single();
+
+      const shouldShowStats = settingData?.value === "true";
+      setShowStats(shouldShowStats);
+
       if (tiers) {
         setPriceTiers(tiers as PriceTier[]);
       }
@@ -141,6 +158,59 @@ export function ScheduleCalendar() {
 
     fetchData();
   }, []);
+
+  // Fetch order stats when showStats changes or month changes
+  useEffect(() => {
+    async function fetchOrderStats() {
+      if (!showStats) return;
+
+      const supabase = createClient();
+      const monthStart = format(startOfMonth(currentMonth), "yyyy-MM-dd");
+      const monthEnd = format(endOfMonth(currentMonth), "yyyy-MM-dd");
+
+      // Get cancelled status ID
+      const { data: cancelledStatus } = await supabase
+        .from("order_statuses")
+        .select("id")
+        .eq("name", "Đã hủy")
+        .single();
+
+      const cancelledStatusId = (cancelledStatus as { id: string } | null)?.id;
+
+      // Fetch orders for this month
+      let query = supabase
+        .from("orders")
+        .select(`
+          delivery_date,
+          status_id,
+          order_items (quantity)
+        `)
+        .gte("delivery_date", monthStart)
+        .lte("delivery_date", monthEnd);
+
+      if (cancelledStatusId) {
+        query = query.neq("status_id", cancelledStatusId);
+      }
+
+      const { data: orders } = await query;
+
+      // Build day stats
+      const stats: Record<string, DayStats> = {};
+
+      (orders as { delivery_date: string; order_items: { quantity: number }[] }[] | null)?.forEach((order) => {
+        const date = order.delivery_date;
+        if (!stats[date]) {
+          stats[date] = { orderCount: 0, totalItems: 0 };
+        }
+        stats[date].orderCount += 1;
+        stats[date].totalItems += order.order_items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+      });
+
+      setDayStats(stats);
+    }
+
+    fetchOrderStats();
+  }, [showStats, currentMonth]);
 
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -173,12 +243,14 @@ export function ScheduleCalendar() {
       const isSelected = selectedDate && isSameDay(currentDay, selectedDate);
       const isPastDay = isPast(currentDay) && !isToday(currentDay);
       const lunarDate = getLunarDate(currentDay, locale);
+      const dateStr = format(currentDay, "yyyy-MM-dd");
+      const stats = dayStats[dateStr];
 
       days.push(
         <motion.button
           key={currentDay.toString()}
-          whileHover={!isPastDay && isCurrentMonth ? { scale: 1.05 } : {}}
-          whileTap={!isPastDay && isCurrentMonth ? { scale: 0.95 } : {}}
+          whileHover={!isPastDay && isCurrentMonth ? { scale: 1.02 } : {}}
+          whileTap={!isPastDay && isCurrentMonth ? { scale: 0.98 } : {}}
           onClick={() => {
             if (!isPastDay && isCurrentMonth) {
               setSelectedDate(currentDay);
@@ -186,7 +258,8 @@ export function ScheduleCalendar() {
           }}
           disabled={isPastDay || !isCurrentMonth}
           className={cn(
-            "relative flex flex-col items-center justify-center p-2 h-16 sm:h-20 rounded-lg transition-all",
+            "relative flex flex-col items-center justify-start p-1.5 sm:p-2 rounded-lg transition-all",
+            showStats ? "h-20 sm:h-24" : "h-16 sm:h-20",
             !isCurrentMonth && "opacity-30",
             isPastDay && "opacity-40 cursor-not-allowed",
             isCurrentMonth && !isPastDay && "hover:shadow-md cursor-pointer",
@@ -199,22 +272,33 @@ export function ScheduleCalendar() {
         >
           <span
             className={cn(
-              "text-sm sm:text-base font-semibold",
+              "text-sm sm:text-base font-semibold leading-tight",
               isToday(currentDay) && "text-primary",
               tierColors && tierColors.textColor
             )}
           >
             {format(currentDay, "d")}
           </span>
-          <span className="text-[10px] sm:text-xs text-muted-foreground">
+          <span className="text-[9px] sm:text-[10px] text-muted-foreground leading-tight">
             {lunarDate}
           </span>
+          {showStats && stats && stats.orderCount > 0 && (
+            <div className="mt-auto w-full">
+              <div className="flex items-center justify-center gap-0.5 text-[10px] sm:text-xs bg-primary/15 rounded px-1 py-0.5">
+                <Package className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                <span className="font-medium">{stats.orderCount}</span>
+              </div>
+              <div className="text-[8px] sm:text-[10px] text-muted-foreground text-center">
+                {stats.totalItems} bánh
+              </div>
+            </div>
+          )}
         </motion.button>
       );
       day = addDays(day, 1);
     }
     rows.push(
-      <div key={day.toString()} className="grid grid-cols-7 gap-1 sm:gap-2">
+      <div key={day.toString()} className="grid grid-cols-7 gap-0.5 sm:gap-1.5">
         {days}
       </div>
     );
@@ -280,11 +364,11 @@ export function ScheduleCalendar() {
             </div>
 
             {/* Weekday headers */}
-            <div className="grid grid-cols-7 gap-1 sm:gap-2 mb-2">
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1.5 mb-1">
               {weekDays.map((d) => (
                 <div
                   key={d}
-                  className="text-center text-xs sm:text-sm font-medium text-muted-foreground py-2"
+                  className="text-center text-xs sm:text-sm font-medium text-muted-foreground py-1.5"
                 >
                   {d}
                 </div>
@@ -292,7 +376,7 @@ export function ScheduleCalendar() {
             </div>
 
             {/* Calendar grid */}
-            <div className="space-y-1 sm:space-y-2">{rows}</div>
+            <div className="space-y-0.5 sm:space-y-1.5">{rows}</div>
 
             {/* Legend */}
             {priceTiers.length > 0 && (

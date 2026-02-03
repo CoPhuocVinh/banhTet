@@ -19,6 +19,8 @@ import {
   Plus,
   Loader2,
   FileSpreadsheet,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Solar } from "lunar-typescript";
 import { Button } from "@/components/ui/button";
@@ -34,6 +36,7 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 import { exportOrdersToExcel } from "@/lib/export-orders";
+import { Switch } from "@/components/ui/switch";
 
 type OrderSummary = {
   id: string;
@@ -128,10 +131,61 @@ export default function CalendarPage() {
     items: [{ product_id: "", quantity: 1, unit_price: 0 }],
   });
 
+  // Show order stats on homepage toggle
+  const [showStatsOnHomepage, setShowStatsOnHomepage] = useState(false);
+  const [savingToggle, setSavingToggle] = useState(false);
+
   useEffect(() => {
     fetchMonthData();
     fetchFormData();
+    fetchHomepageToggle();
   }, [currentMonth]);
+
+  async function fetchHomepageToggle() {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "show_calendar_order_stats")
+      .single();
+
+    if (data) {
+      setShowStatsOnHomepage(data.value === "true");
+    }
+  }
+
+  async function handleToggleHomepageStats(checked: boolean) {
+    setSavingToggle(true);
+    const supabase = createClient();
+
+    try {
+      // Try to update first
+      const { data: existing } = await supabase
+        .from("site_settings")
+        .select("id")
+        .eq("key", "show_calendar_order_stats")
+        .single();
+
+      if (existing) {
+        await supabase
+          .from("site_settings")
+          .update({ value: checked ? "true" : "false" })
+          .eq("key", "show_calendar_order_stats");
+      } else {
+        await supabase
+          .from("site_settings")
+          .insert({ key: "show_calendar_order_stats", value: checked ? "true" : "false" } as never);
+      }
+
+      setShowStatsOnHomepage(checked);
+      toast.success(checked ? "Đã bật hiển thị số lượng đơn trên trang chủ" : "Đã tắt hiển thị số lượng đơn trên trang chủ");
+    } catch (error) {
+      console.error("Error saving toggle:", error);
+      toast.error("Có lỗi khi lưu cài đặt");
+    } finally {
+      setSavingToggle(false);
+    }
+  }
 
   async function fetchFormData() {
     const supabase = createClient();
@@ -539,6 +593,25 @@ export default function CalendarPage() {
           <p className="text-muted-foreground">Xem đơn hàng theo ngày giao</p>
         </div>
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mr-2 px-3 py-2 bg-muted rounded-lg">
+            <label
+              htmlFor="show-stats-toggle"
+              className="text-sm text-muted-foreground cursor-pointer flex items-center gap-2"
+            >
+              {showStatsOnHomepage ? (
+                <Eye className="h-4 w-4 text-primary" />
+              ) : (
+                <EyeOff className="h-4 w-4" />
+              )}
+              Hiện số đơn (Trang chủ)
+            </label>
+            <Switch
+              id="show-stats-toggle"
+              checked={showStatsOnHomepage}
+              onCheckedChange={handleToggleHomepageStats}
+              disabled={savingToggle}
+            />
+          </div>
           <Button
             variant="outline"
             onClick={() => setShowExportModal(true)}
