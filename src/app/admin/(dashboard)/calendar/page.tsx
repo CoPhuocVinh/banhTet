@@ -169,7 +169,7 @@ export default function CalendarPage() {
       if (existing) {
         await supabase
           .from("site_settings")
-          .update({ value: checked ? "true" : "false" })
+          .update({ value: checked ? "true" : "false" } as never)
           .eq("key", "show_calendar_order_stats");
       } else {
         await supabase
