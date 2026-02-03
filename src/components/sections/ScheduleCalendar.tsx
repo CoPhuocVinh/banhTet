@@ -138,7 +138,7 @@ export function ScheduleCalendar() {
         .eq("key", "show_calendar_order_stats")
         .single();
 
-      const shouldShowStats = settingData?.value === "true";
+      const shouldShowStats = (settingData as { value: string } | null)?.value === "true";
       setShowStats(shouldShowStats);
 
       if (tiers) {

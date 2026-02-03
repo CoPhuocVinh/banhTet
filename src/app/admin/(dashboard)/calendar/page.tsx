@@ -150,7 +150,7 @@ export default function CalendarPage() {
       .single();
 
     if (data) {
-      setShowStatsOnHomepage(data.value === "true");
+      setShowStatsOnHomepage((data as { value: string }).value === "true");
     }
   }
 
