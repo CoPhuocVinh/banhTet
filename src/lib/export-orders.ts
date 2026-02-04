@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { Solar } from "lunar-typescript";
 
 type OrderForExport = {
@@ -21,8 +21,6 @@ function getLunarDateString(date: Date): string {
   const solar = Solar.fromDate(date);
   const lunar = solar.getLunar();
   const day = lunar.getDay();
-  const month = lunar.getMonth();
-  const year = lunar.getYear();
 
   // Format as "DD AL (dd/mm/yyyy)"
   return `${day} AL (${date.toLocaleDateString("vi-VN")})`;
@@ -36,24 +34,11 @@ function formatProductItems(
 
   items.forEach((item) => {
     const name = item.products?.name || "Không rõ";
-    // Simplify product name (e.g., "Nhân đậu + thịt + trứng muối - Loại lớn" -> "đậu + thịt")
     grouped[name] = (grouped[name] || 0) + item.quantity;
   });
 
-  // Format as "2 mặn" or "1 đậu + 1 chuối"
   return Object.entries(grouped)
-    .map(([name, qty]) => {
-      // Try to extract short name
-      let shortName = name;
-      if (name.includes("mặn") || name.toLowerCase().includes("thịt")) {
-        shortName = "mặn";
-      } else if (name.includes("chay") || name.toLowerCase().includes("đậu")) {
-        shortName = "đậu";
-      } else if (name.includes("chuối")) {
-        shortName = "chuối";
-      }
-      return `${qty} ${shortName}`;
-    })
+    .map(([name, qty]) => `${qty} ${name}`)
     .join(" + ");
 }
 
@@ -61,8 +46,47 @@ export function exportOrdersToExcel(
   orders: OrderForExport[],
   filename: string = "don-hang"
 ) {
-  // Prepare data for export
-  const data = orders.map((order, index) => {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet("Đơn hàng");
+
+  // Define columns
+  ws.columns = [
+    { header: "SL (đơn)", key: "sl", width: 10 },
+    { header: "", key: "empty1", width: 5 },
+    { header: "Người đặt", key: "nguoi_dat", width: 22 },
+    { header: "Bánh tét", key: "banh_tet", width: 35 },
+    { header: "Ngày muốn giao", key: "ngay_giao", width: 25 },
+    { header: "Giá bán", key: "gia_ban", width: 15 },
+    { header: "Giá gốc", key: "gia_goc", width: 15 },
+    { header: "", key: "empty2", width: 5 },
+    { header: "Note", key: "note", width: 30 },
+  ];
+
+  // Style header row
+  const headerRow = ws.getRow(1);
+  headerRow.eachCell((cell) => {
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF4472C4" },
+    };
+    cell.font = {
+      bold: true,
+      color: { argb: "FFFFFFFF" },
+      size: 12,
+    };
+    cell.alignment = { horizontal: "center", vertical: "middle" };
+    cell.border = {
+      top: { style: "thin" },
+      bottom: { style: "thin" },
+      left: { style: "thin" },
+      right: { style: "thin" },
+    };
+  });
+  headerRow.height = 28;
+
+  // Add data rows
+  orders.forEach((order) => {
     const totalQuantity = order.order_items.reduce(
       (sum, item) => sum + item.quantity,
       0
@@ -71,17 +95,33 @@ export function exportOrdersToExcel(
     const lunarDate = getLunarDateString(deliveryDate);
     const productDescription = formatProductItems(order.order_items);
 
-    return {
-      "SL (đơn)": totalQuantity,
-      "": "", // Empty column B
-      "Người đặt": order.customer_name,
-      "Bánh tét": productDescription,
-      "Ngày muốn giao": lunarDate,
-      "Giá bán": order.total_amount,
-      "Giá gốc": 0, // We don't track original price
-      " ": "", // Empty column H
-      Note: order.note || "",
-    };
+    const row = ws.addRow({
+      sl: totalQuantity,
+      empty1: "",
+      nguoi_dat: order.customer_name,
+      banh_tet: productDescription,
+      ngay_giao: lunarDate,
+      gia_ban: order.total_amount,
+      gia_goc: 0,
+      empty2: "",
+      note: order.note || "",
+    });
+
+    // Style data rows
+    row.eachCell((cell) => {
+      cell.border = {
+        top: { style: "thin", color: { argb: "FFD9D9D9" } },
+        bottom: { style: "thin", color: { argb: "FFD9D9D9" } },
+        left: { style: "thin", color: { argb: "FFD9D9D9" } },
+        right: { style: "thin", color: { argb: "FFD9D9D9" } },
+      };
+      cell.alignment = { vertical: "middle" };
+    });
+
+    // Format price columns
+    row.getCell("gia_ban").numFmt = "#,##0";
+    row.getCell("gia_goc").numFmt = "#,##0";
+    row.getCell("sl").alignment = { horizontal: "center", vertical: "middle" };
   });
 
   // Add summary row
@@ -95,44 +135,58 @@ export function exportOrdersToExcel(
     0
   );
 
-  data.push({
-    "SL (đơn)": totalQuantity,
-    "": "",
-    "Người đặt": "",
-    "Bánh tét": "",
-    "Ngày muốn giao": "",
-    "Giá bán": totalAmount,
-    "Giá gốc": 0,
-    " ": "",
-    Note: "",
+  const summaryRow = ws.addRow({
+    sl: totalQuantity,
+    empty1: "",
+    nguoi_dat: "",
+    banh_tet: "",
+    ngay_giao: "",
+    gia_ban: totalAmount,
+    gia_goc: 0,
+    empty2: "",
+    note: "",
   });
 
-  // Create workbook and worksheet
-  const ws = XLSX.utils.json_to_sheet(data);
-
-  // Set column widths
-  ws["!cols"] = [
-    { wch: 10 }, // SL (đơn)
-    { wch: 5 }, // Empty
-    { wch: 20 }, // Người đặt
-    { wch: 25 }, // Bánh tét
-    { wch: 25 }, // Ngày muốn giao
-    { wch: 15 }, // Giá bán
-    { wch: 15 }, // Giá gốc
-    { wch: 5 }, // Empty
-    { wch: 30 }, // Note
-  ];
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Đơn hàng");
+  // Style summary row
+  summaryRow.eachCell((cell) => {
+    cell.font = { bold: true, size: 12 };
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFF2F2F2" },
+    };
+    cell.border = {
+      top: { style: "medium" },
+      bottom: { style: "medium" },
+      left: { style: "thin" },
+      right: { style: "thin" },
+    };
+    cell.alignment = { vertical: "middle" };
+  });
+  summaryRow.getCell("gia_ban").numFmt = "#,##0";
+  summaryRow.getCell("gia_goc").numFmt = "#,##0";
+  summaryRow.getCell("sl").alignment = {
+    horizontal: "center",
+    vertical: "middle",
+  };
 
   // Generate filename with date
   const now = new Date();
   const dateStr = now.toISOString().split("T")[0];
   const fullFilename = `${filename}-${dateStr}.xlsx`;
 
-  // Download file
-  XLSX.writeFile(wb, fullFilename);
+  // Download file (browser)
+  wb.xlsx.writeBuffer().then((buffer) => {
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fullFilename;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 }
 
 export function exportOrdersByDateRange(

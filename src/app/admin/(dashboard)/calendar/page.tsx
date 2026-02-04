@@ -516,6 +516,66 @@ export default function CalendarPage() {
     }));
   }
 
+  async function handleExportDay(date: string) {
+    const supabase = createClient();
+
+    try {
+      const { data: cancelledStatus } = await supabase
+        .from("order_statuses")
+        .select("id")
+        .eq("name", "Đã hủy")
+        .single();
+
+      const cancelledStatusId = (cancelledStatus as { id: string } | null)?.id;
+
+      let query = supabase
+        .from("orders")
+        .select(
+          `
+          order_code,
+          customer_name,
+          customer_phone,
+          delivery_date,
+          delivery_address,
+          total_amount,
+          note,
+          status_id,
+          order_statuses (name),
+          order_items (
+            quantity,
+            unit_price,
+            products (name)
+          )
+        `
+        )
+        .eq("delivery_date", date)
+        .order("created_at");
+
+      if (cancelledStatusId) {
+        query = query.neq("status_id", cancelledStatusId);
+      }
+
+      const { data: orders, error } = await query;
+
+      if (error) throw error;
+
+      if (!orders || orders.length === 0) {
+        toast.error("Không có đơn hàng nào cho ngày này");
+        return;
+      }
+
+      exportOrdersToExcel(
+        orders as Parameters<typeof exportOrdersToExcel>[0],
+        `don-hang-${date}`
+      );
+
+      toast.success(`Đã xuất ${orders.length} đơn hàng`);
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Có lỗi khi xuất file");
+    }
+  }
+
   async function handleExport() {
     setExportLoading(true);
     const supabase = createClient();
@@ -832,14 +892,26 @@ export default function CalendarPage() {
                   </p>
                 )}
 
-                {/* Create Order Button */}
-                <Button
-                  className="w-full"
-                  onClick={() => setShowCreateForm(true)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Tạo đơn hàng mới
-                </Button>
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  {selectedDay.summary && selectedDay.summary.orderCount > 0 && (
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => handleExportDay(selectedDay.date)}
+                    >
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
+                      Xuất Excel
+                    </Button>
+                  )}
+                  <Button
+                    className="flex-1"
+                    onClick={() => setShowCreateForm(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Tạo đơn hàng mới
+                  </Button>
+                </div>
               </>
             ) : (
               /* Create Order Form */
